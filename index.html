@@ -46,7 +46,18 @@
         .font-elegant { font-family: 'Playfair Display', serif; }
         .font-quote { font-family: 'Cormorant Garamond', serif; }
 
-        /* Efecto Antigravedad / Glassmorphism */
+        /* --- ANIMACIONES DE MOVIMIENTO (EFECTOS PREMIUM) --- */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(16px);
@@ -58,6 +69,51 @@
             width: 100%;
             position: relative;
             overflow: hidden;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .glass-card:nth-child(1) { animation-delay: 0.1s; }
+        .glass-card:nth-child(2) { animation-delay: 0.2s; }
+        .glass-card:nth-child(3) { animation-delay: 0.3s; }
+        .glass-card:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Fondo dinámico de partículas/luminoso */
+        .ambient-glow-1 {
+            position: fixed;
+            top: 10%;
+            left: 5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(214, 175, 55, 0.12) 0%, rgba(243, 229, 171, 0) 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(40px);
+            animation: floatGlow1 25s infinite ease-in-out alternate;
+            pointer-events: none;
+        }
+        
+        .ambient-glow-2 {
+            position: fixed;
+            bottom: 10%;
+            right: 5%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(232, 216, 222, 0.2) 0%, rgba(244, 232, 234, 0) 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(50px);
+            animation: floatGlow2 30s infinite ease-in-out alternate;
+            pointer-events: none;
+        }
+
+        @keyframes floatGlow1 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(80px, 50px) scale(1.2); }
+        }
+
+        @keyframes floatGlow2 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-100px, -60px) scale(1.15); }
         }
 
         /* --- BOTÓN DE SENSEI --- */
@@ -69,7 +125,9 @@
             outline: none;
             display: inline-block;
         }
-        .lotus-btn:hover { filter: drop-shadow(0 6px 12px rgba(212, 175, 55, 0.7)); }
+        .lotus-btn:hover { 
+            filter: drop-shadow(0 6px 12px rgba(212, 175, 55, 0.7)); 
+        }
 
         .source-btn {
             display: inline-flex; align-items: center; gap: 6px;
@@ -94,6 +152,7 @@
             font-size: 0.85rem;
             font-weight: 600;
             margin-top: 8px;
+            transition: all 0.3s ease;
         }
 
         /* --- CONTROLES DE TIEMPO --- */
@@ -111,6 +170,11 @@
             cursor: pointer;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
             width: 100px;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+        .ios-picker:focus {
+            border-color: #8a7019;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
         }
 
         /* --- DAIMOKUGRAMA --- */
@@ -122,6 +186,7 @@
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
         }
         
         .daimokugrama-wrapper::-webkit-scrollbar { height: 8px; }
@@ -137,6 +202,10 @@
             border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.4);
             box-shadow: inset 0 4px 10px rgba(0,0,0,0.03);
+            transition: transform 0.3s;
+        }
+        .letter-grid:hover {
+            transform: translateY(-4px);
         }
         
         .box { 
@@ -147,13 +216,14 @@
             background: rgba(255, 255, 255, 0.5);
             border: 1px solid rgba(212, 175, 55, 0.3);
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: inset 0 2px 4px rgba(255,255,255,0.9), 0 1px 2px rgba(0,0,0,0.05);
         }
         .box.active-area:hover { 
-            transform: scale(1.15); 
+            transform: scale(1.3); 
             background: rgba(255, 255, 255, 1); 
             border-color: rgba(212, 175, 55, 0.8);
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
             z-index: 10;
         }
         .box.filled {
@@ -161,7 +231,15 @@
             border: none;
             box-shadow: 0 2px 6px rgba(212, 175, 55, 0.6), inset 0 -2px 5px rgba(0,0,0,0.3);
             position: relative;
+            animation: pearlPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
+        
+        @keyframes pearlPop {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         .box.filled::after {
             content: ''; position: absolute; top: 15%; left: 20%;
             width: 25%; height: 25%; background: white;
@@ -188,17 +266,21 @@
 </head>
 <body class="p-3 md:p-6 pb-24">
 
+    <!-- Efecto ambiental luminoso flotante en el fondo -->
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+
     <main class="w-full max-w-4xl mx-auto flex flex-col gap-6">
 
         <!-- SECCIÓN 1: ALIENTO DE SENSEI -->
         <section class="glass-card flex flex-col items-center text-center">
-            <h2 class="font-elegant text-3xl text-gray-800 mb-2">Sensei te quiere decir algo:</h2>
+            <h2 class="font-elegant text-3xl text-gray-800 mb-2 font-semibold">Sensei te quiere decir algo:</h2>
             
             <!-- Botón que late y cambia de forma -->
             <button id="lotusBtn" class="lotus-btn mt-2" title="Toca para recibir el aliento de este momento">🌸</button>
             
             <div class="mt-6 p-6 md:p-8 bg-white bg-opacity-50 border border-white rounded-3xl w-full min-h-[160px] flex flex-col items-center justify-center shadow-[inset_0_2px_15px_rgba(0,0,0,0.04)] transition-all">
-                <p id="senseiPhrase" class="text-xl md:text-2xl font-quote text-gray-800 leading-relaxed italic px-2">
+                <p id="senseiPhrase" class="text-xl md:text-2xl font-quote text-gray-800 leading-relaxed italic px-2 transition-opacity duration-300">
                     "Toca la flor para recibir el aliento reservado para este preciso segundo."
                 </p>
                 <div id="quoteFooter" class="hidden flex-col items-center w-full mt-4 border-t border-gray-300 border-opacity-50 pt-4">
@@ -228,8 +310,11 @@
             </div>
             
             <div class="w-full md:w-1/2 text-sm text-gray-700 bg-white bg-opacity-60 p-4 rounded-2xl border border-white shadow-sm">
-                <p class="font-semibold mb-2 text-gray-800 border-b border-gray-300 pb-1">Damas conectadas:</p>
-                <div id="onlineUsersList" class="h-20 overflow-y-auto italic font-light space-y-1">
+                <p class="font-semibold mb-2 text-gray-800 border-b border-gray-300 pb-1 flex items-center gap-2">
+                    <span class="inline-block animate-pulse w-2 h-2 rounded-full bg-green-500"></span>
+                    Damas conectadas:
+                </p>
+                <div id="onlineUsersList" class="h-20 overflow-y-auto italic font-light space-y-1 font-sans">
                     Esperando conexión a internet...
                 </div>
             </div>
@@ -278,11 +363,11 @@
         <!-- SECCIÓN 4: DAIMOKUGRAMA -->
         <section class="glass-card">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b border-gray-300 border-opacity-50 pb-4 gap-4">
-                <h1 class="font-elegant text-4xl bg-clip-text text-transparent bg-gradient-to-r from-[#b38728] to-[#D4AF37] text-center">
+                <h1 class="font-elegant text-4xl bg-clip-text text-transparent bg-gradient-to-r from-[#b38728] to-[#D4AF37] text-center font-bold">
                     Daimokudamas
                 </h1>
                 
-                <div class="flex items-center gap-6">
+                <div class="flex items-center gap-6 font-sans">
                     <p class="text-sm text-gray-800 bg-white bg-opacity-70 px-4 py-2 rounded-full shadow-sm border border-white font-medium">
                         Perlas: <strong id="creditCount" class="text-[#D4AF37] text-xl ml-1">0</strong>
                     </p>
@@ -298,9 +383,10 @@
             </div>
         </section>
 
-    
+    </main>
+
     <!-- BANNER DE INSTALACIÓN PWA ELEGANTE GLASSMORPHISM -->
-    <div id="pwaInstallBanner" class="fixed bottom-0 left-0 right-0 z-50 p-5 bg-[rgba(255,255,255,0.75)] backdrop-blur-xl border-t-2 border-[rgba(255,255,255,0.5)] shadow-[0_-10px_30px_rgba(190,160,170,0.15)] flex flex-col md:flex-row items-center justify-between gap-4 transition-transform duration-500 translate-y-full font-serif no-print">
+    <div id="pwaInstallBanner" class="fixed bottom-0 left-0 right-0 z-50 p-5 bg-[rgba(255,255,255,0.85)] backdrop-blur-2xl border-t-2 border-[rgba(255,255,255,0.5)] shadow-[0_-10px_30px_rgba(190,160,170,0.15)] flex flex-col md:flex-row items-center justify-between gap-4 transition-transform duration-500 translate-y-full font-serif no-print">
         <div class="flex items-center gap-4 text-left">
             <img src="icon-192.png" alt="Icono Daimokudamas" class="w-16 h-16 rounded-2xl border border-[rgba(255,255,255,0.5)] shadow-md flex-shrink-0">
             <div>
@@ -318,12 +404,28 @@
         </div>
     </div>
 
-    </main>
-
     <script>
         // --- 1. ANIMACIÓN DEL BOTÓN DE SENSEI (3 Latidos, Cambio, 3 Latidos...) ---
         const lotusBtn = document.getElementById('lotusBtn');
         const flowerIcons = ['🌸', '🌺', '🌷', '🪷', '🌼', '🌹', '✨', '🌿'];
+        let audioCtx;
+
+        function playElegantChime() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const frequencies = [523.25, 659.25, 783.99, 1046.50];
+            frequencies.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.1 + (i*0.1));
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 5);
+            });
+        }
         
         function playBeatSequence() {
             let beats = 0;
@@ -511,7 +613,6 @@
         let timerInterval;
         let timeRemaining = 0; 
         let isRunning = false;
-        let audioCtx;
         
         const timeDisplay = document.getElementById('timeDisplay');
         const startBtn = document.getElementById('startBtn');
@@ -534,23 +635,6 @@
         }
         setPreviewTime();
 
-        function playElegantChime() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const frequencies = [523.25, 659.25, 783.99, 1046.50];
-            frequencies.forEach((freq, i) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.1 + (i*0.1));
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 5);
-            });
-        }
-
         function setEndTimeCalculation() {
             const h = parseInt(hourPicker.value);
             const m = parseInt(minutePicker.value);
@@ -564,9 +648,7 @@
             myEndTimeText.textContent = `${endHH}:${endMM}`;
             myEndTimeBadge.classList.remove('hidden');
             
-            if(navigator.onLine) {
-                updateNetworkStatus(true, `${endHH}:${endMM}`);
-            }
+            updateNetworkStatus(true, `${endHH}:${endMM}`);
         }
 
         startBtn.addEventListener('click', () => {
@@ -575,60 +657,7 @@
                 isRunning = false;
                 startBtn.textContent = "Continuar Daimoku";
                 myEndTimeBadge.classList.add('hidden');
-                
-        // --- 6. REGISTRO DE SERVICE WORKER Y CONTROLADOR PWA ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker de Daimokudamas registrado:', reg.scope))
-                    .catch(err => console.error('Error al registrar el Service Worker:', err));
-            });
-        }
-
-        let deferredPrompt;
-        const installBanner = document.getElementById('pwaInstallBanner');
-        const installBtn = document.getElementById('pwaInstallBtn');
-        const closeBtn = document.getElementById('pwaCloseBtn');
-        const installText = document.getElementById('pwaInstallText');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBanner.classList.remove('translate-y-full');
-        });
-
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-        if (isIOS && !isStandalone) {
-            installText.innerHTML = "Toca el botón <strong>Compartir 📤</strong> abajo en Safari y selecciona <strong>'Agregar a inicio' ➕</strong>.";
-            installBtn.innerHTML = "📤 CÓMO INSTALAR";
-            
-            setTimeout(() => {
-                installBanner.classList.remove('translate-y-full');
-            }, 2000);
-        }
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                installBanner.classList.add('translate-y-full');
-            } else if (isIOS) {
-                alert("Para instalar en tu iPhone/iPad:
-
-1. Pulsa el botón de compartir 📤 en la parte inferior de Safari.
-2. Desliza hacia abajo y selecciona 'Agregar a inicio' ➕.
-3. ¡Listo! Se abrirá como una aplicación nativa.");
-            }
-        });
-
-        closeBtn.addEventListener('click', () => {
-            installBanner.classList.add('translate-y-full');
-        });
-
-        updateNetworkStatus(); 
+                updateNetworkStatus(); 
             } else {
                 if(timeRemaining === 0) {
                     const h = parseInt(hourPicker.value) * 3600;
@@ -651,60 +680,7 @@
                         isRunning = false;
                         startBtn.textContent = "Iniciar Daimoku";
                         myEndTimeBadge.classList.add('hidden');
-                        
-        // --- 6. REGISTRO DE SERVICE WORKER Y CONTROLADOR PWA ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker de Daimokudamas registrado:', reg.scope))
-                    .catch(err => console.error('Error al registrar el Service Worker:', err));
-            });
-        }
-
-        let deferredPrompt;
-        const installBanner = document.getElementById('pwaInstallBanner');
-        const installBtn = document.getElementById('pwaInstallBtn');
-        const closeBtn = document.getElementById('pwaCloseBtn');
-        const installText = document.getElementById('pwaInstallText');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBanner.classList.remove('translate-y-full');
-        });
-
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-        if (isIOS && !isStandalone) {
-            installText.innerHTML = "Toca el botón <strong>Compartir 📤</strong> abajo en Safari y selecciona <strong>'Agregar a inicio' ➕</strong>.";
-            installBtn.innerHTML = "📤 CÓMO INSTALAR";
-            
-            setTimeout(() => {
-                installBanner.classList.remove('translate-y-full');
-            }, 2000);
-        }
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                installBanner.classList.add('translate-y-full');
-            } else if (isIOS) {
-                alert("Para instalar en tu iPhone/iPad:
-
-1. Pulsa el botón de compartir 📤 en la parte inferior de Safari.
-2. Desliza hacia abajo y selecciona 'Agregar a inicio' ➕.
-3. ¡Listo! Se abrirá como una aplicación nativa.");
-            }
-        });
-
-        closeBtn.addEventListener('click', () => {
-            installBanner.classList.add('translate-y-full');
-        });
-
-        updateNetworkStatus();
+                        updateNetworkStatus();
                         playElegantChime();
 
                         const totalMins = (parseInt(hourPicker.value) * 60) + parseInt(minutePicker.value);
@@ -783,7 +759,7 @@
             { text: "Si queremos contribuir al crecimiento de las personas debemos dedicarnos con todo nuestro ser y aplicarnos con pasión al diálogo.", source: "La nueva revolución humana, vol. 18", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/may-5.html" },
             { text: "La empatía, la oración y la cálida disposición a dialogar son formas de construir puentes de esperanza y confianza.", source: "Las mujeres de la Soka son radiantes soles de esperanza", url: "https://www.sokaglobal.org/es/in-society/initiatives/empowering-young-women-to-lead-2.html" },
             { text: "Cada desafío que emprendamos fortalecerá nuestras capacidades para desarrollarnos como líderes verdaderas.", source: "La nueva revolución humana, vol. 26", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/october-23.html" },
-            { text: "Quienes siguen desafiándose son jóvenes de corazón. La juventud no es cuestión de edad, sino de actitud y de fe.", source: "La sabiduría para ser feliz, cap. 9.2", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/august-13.html" },
+            { text: "Quienes siguen desafiándose son jóvenes de corazón. La juventud no es cuestión de edad, sino de actitud and de fe.", source: "La sabiduría para ser feliz, cap. 9.2", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/august-13.html" },
             { text: "Si las mujeres encabezan la marcha podremos evitar que la sociedad vuelva a la guerra y generar la energía para un siglo de paz.", source: "Propuesta de paz del año 2000", url: "https://www.sokaglobal.org/es/in-society/initiatives/empowering-young-women-to-lead-2.html" },
             { text: "Solo se abren nuevos caminos cuando uno sale de su zona de confort, trabajando intensamente y aplicando todo su ingenio.", source: "La nueva revolución humana, vol. 30", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/october-4.html" },
             { text: "La verdadera felicidad nace de la profundidad de la fe y de la determinación de construir una vida victoriosa desde adentro.", source: "365 Palabras de aliento para la mujer", url: "https://www.daisakuikeda.org/es/sub/events/archives/2017/mar/22-daily-encouragement-for-women-chin.html" },
@@ -814,6 +790,7 @@
         lotusBtn.addEventListener('click', () => {
             const currentSecond = new Date().getSeconds();
             const quote = quotesData[currentSecond];
+            playElegantChime();
             
             senseiPhrase.style.opacity = '0';
             quoteFooter.classList.add('hidden');
@@ -838,11 +815,42 @@
         userNameInput.value = localStorage.getItem('daimokudamas_name') || '';
         userNameInput.addEventListener('input', (e) => localStorage.setItem('daimokudamas_name', e.target.value));
 
-        function getRandomEndTime() {
+        function getDamaEndTime(additionalMinutes) {
             const now = new Date();
-            now.setHours(now.getHours() + Math.floor(Math.random() * 2));
-            now.setMinutes(Math.floor(Math.random() * 60));
-            return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            now.setMinutes(now.getMinutes() + additionalMinutes);
+            const hh = now.getHours().toString().padStart(2, '0');
+            const mm = now.getMinutes().toString().padStart(2, '0');
+            return `${hh}:${mm}`;
+        }
+
+        function getConnectedDamas() {
+            const now = new Date();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            
+            // Lógica determinista de suma con la hora local
+            const sum = hour + minute;
+            
+            const allDamas = [
+                { name: "Clara (Salta)", duration: 15 },
+                { name: "Sofía (Buenos Aires)", duration: 30 },
+                { name: "Elena (Córdoba)", duration: 45 },
+                { name: "Gabriela (Mendoza)", duration: 20 },
+                { name: "Mariana (Tucumán)", duration: 25 },
+                { name: "Lucía (Rosario)", duration: 40 },
+                { name: "Patricia (Neuquén)", duration: 10 },
+                { name: "Laura (Mar del Plata)", duration: 50 },
+                { name: "Marta (Corrientes)", duration: 35 },
+                { name: "Silvia (Bariloche)", duration: 60 }
+            ];
+            
+            // Retorna 3 damas seleccionadas determinísticamente por la suma de la hora local
+            const selected = [];
+            for (let i = 0; i < 3; i++) {
+                const index = (sum + i * 3) % allDamas.length;
+                selected.push(allDamas[index]);
+            }
+            return selected;
         }
 
         function updateNetworkStatus(isActive = false, personalEndTime = null) {
@@ -854,12 +862,14 @@
                     `<div class="text-green-700 font-bold">✓ ${userNameInput.value || 'Tú'} (Conectada) - Fin: ${personalEndTime}</div>` : 
                     `<div class="text-green-700 font-medium">✓ ${userNameInput.value || 'Tú'} (Conectada)</div>`;
 
-                onlineUsersList.innerHTML = `
-                    ${myStatus}
-                    <div class="text-gray-700">• Clara (Salta) - Fin de daimoku: ${getRandomEndTime()}</div>
-                    <div class="text-gray-700">• Sofía (Buenos Aires) - Fin de daimoku: ${getRandomEndTime()}</div>
-                    <div class="text-gray-700">• Elena (Córdoba) - Fin de daimoku: ${getRandomEndTime()}</div>
-                `;
+                const activeDamas = getConnectedDamas();
+                let damasHTML = myStatus;
+                
+                activeDamas.forEach(d => {
+                    damasHTML += `<div class="text-gray-700 font-sans">• ${d.name} - Fin de daimoku: ${getDamaEndTime(d.duration)}</div>`;
+                });
+                
+                onlineUsersList.innerHTML = damasHTML;
             } else {
                 statusDot.className = 'offline-dot';
                 statusText.textContent = 'Fuera de línea (Modo Local)';
@@ -869,7 +879,6 @@
 
         window.addEventListener('online', () => updateNetworkStatus(isRunning, myEndTimeText.textContent));
         window.addEventListener('offline', () => updateNetworkStatus());
-        
         
         // --- 6. REGISTRO DE SERVICE WORKER Y CONTROLADOR PWA ---
         if ('serviceWorker' in navigator) {
@@ -911,11 +920,7 @@
                 deferredPrompt = null;
                 installBanner.classList.add('translate-y-full');
             } else if (isIOS) {
-                alert("Para instalar en tu iPhone/iPad:
-
-1. Pulsa el botón de compartir 📤 en la parte inferior de Safari.
-2. Desliza hacia abajo y selecciona 'Agregar a inicio' ➕.
-3. ¡Listo! Se abrirá como una aplicación nativa.");
+                alert("Para instalar en tu iPhone/iPad:\n\n1. Pulsa el botón de compartir 📤 en la parte inferior de Safari.\n2. Desliza hacia abajo y selecciona 'Agregar a inicio' ➕.\n3. ¡Listo! Se abrirá como una aplicación nativa.");
             }
         });
 
@@ -923,6 +928,7 @@
             installBanner.classList.add('translate-y-full');
         });
 
+        // Inicializar vistas
         updateNetworkStatus();
         updateCreditsDisplay();
     </script>

@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daimokudamas</title>
+    
+    <!-- PWA Meta Tags (Optimizado para Android y iOS) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#fdfbfb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Daimokudamas">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tipografías Elegantes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #F3E5AB;
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.7);
+            --text-dark: #2c2c2c;
+            --box-size: clamp(18px, 4vw, 24px); 
+        }
+
+        body {
+            background: linear-gradient(135deg, #fdfbfb 0%, #f4e8ea 50%, #e8d8de 100%);
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-attachment: fixed;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-elegant { font-family: 'Playfair Display', serif; }
+        .font-quote { font-family: 'Cormorant Garamond', serif; }
+
+        /* Efecto Antigravedad / Glassmorphism */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(190, 160, 170, 0.2);
+            padding: 24px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- BOTÓN DE SENSEI --- */
+        .lotus-btn {
+            background: none; border: none; font-size: 4rem;
+            cursor: pointer; 
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s;
+            filter: drop-shadow(0 4px 8px rgba(212, 175, 55, 0.5));
+            outline: none;
+            display: inline-block;
+        }
+        .lotus-btn:hover { filter: drop-shadow(0 6px 12px rgba(212, 175, 55, 0.7)); }
+
+        .source-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-family: 'Inter', sans-serif; font-size: 0.75rem; letter-spacing: 0.05em;
+            color: #b38728; text-decoration: none; border: 1px solid rgba(212, 175, 55, 0.5);
+            padding: 6px 14px; border-radius: 20px; transition: all 0.25s ease;
+            background: rgba(255,255,255,0.7); margin-top: 12px;
+        }
+        .source-btn:hover { background: #D4AF37; color: white; border-color: #D4AF37; }
+        .source-btn svg { width: 12px; height: 12px; fill: currentColor; }
+
+        /* --- RED ONLINE --- */
+        .online-dot { height: 12px; width: 12px; background-color: #34C759; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 8px rgba(52, 199, 89, 0.6); }
+        .offline-dot { height: 12px; width: 12px; background-color: #FF3B30; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .end-time-badge {
+            display: inline-block;
+            background: rgba(212, 175, 55, 0.15);
+            color: #9c7f21;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        /* --- CONTROLES DE TIEMPO --- */
+        .ios-picker {
+            appearance: none;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--gold);
+            border-radius: 14px;
+            padding: 12px;
+            font-size: 1.4rem;
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            outline: none;
+            cursor: pointer;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            width: 100px;
+        }
+
+        /* --- DAIMOKUGRAMA --- */
+        .daimokugrama-wrapper {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 24px;
+            padding: 20px 10px 40px; 
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .daimokugrama-wrapper::-webkit-scrollbar { height: 8px; }
+        .daimokugrama-wrapper::-webkit-scrollbar-track { background: rgba(255,255,255,0.4); border-radius: 10px; }
+        .daimokugrama-wrapper::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; border: 2px solid rgba(255,255,255,0.4); }
+
+        .letter-grid {
+            display: grid;
+            gap: 2px;
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.15);
+            padding: 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.4);
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.03);
+        }
+        
+        .box { 
+            width: var(--box-size); height: var(--box-size); 
+            border-radius: 50%; 
+        }
+        .box.active-area {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.9), 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .box.active-area:hover { 
+            transform: scale(1.15); 
+            background: rgba(255, 255, 255, 1); 
+            border-color: rgba(212, 175, 55, 0.8);
+            z-index: 10;
+        }
+        .box.filled {
+            background: radial-gradient(circle at 35% 35%, #ffffff, #D4AF37, #8a7019);
+            border: none;
+            box-shadow: 0 2px 6px rgba(212, 175, 55, 0.6), inset 0 -2px 5px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .box.filled::after {
+            content: ''; position: absolute; top: 15%; left: 20%;
+            width: 25%; height: 25%; background: white;
+            border-radius: 50%; opacity: 0.7; filter: blur(0.5px);
+        }
+
+        .reset-lever {
+            width: 50px; height: 26px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 13px; position: relative;
+            cursor: pointer; transition: background 0.3s;
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+        .reset-lever::after {
+            content: ''; position: absolute; top: 1px; left: 2px;
+            width: 22px; height: 22px; background: var(--gold);
+            border-radius: 50%; transition: transform 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .reset-lever.active { background: rgba(212, 175, 55, 0.3); }
+        .reset-lever.active::after { transform: translateX(22px); }
+
+    </style>
+</head>
+<body class="p-3 md:p-6 pb-24">
+
+    <main class="w-full max-w-4xl mx-auto flex flex-col gap-6">
+
+        <!-- SECCIÓN 1: ALIENTO DE SENSEI -->
+        <section class="glass-card flex flex-col items-center text-center">
+            <h2 class="font-elegant text-3xl text-gray-800 mb-2">Sensei te quiere decir algo:</h2>
+            
+            <!-- Botón que late y cambia de forma -->
+            <button id="lotusBtn" class="lotus-btn mt-2" title="Toca para recibir el aliento de este momento">🌸</button>
+            
+            <div class="mt-6 p-6 md:p-8 bg-white bg-opacity-50 border border-white rounded-3xl w-full min-h-[160px] flex flex-col items-center justify-center shadow-[inset_0_2px_15px_rgba(0,0,0,0.04)] transition-all">
+                <p id="senseiPhrase" class="text-xl md:text-2xl font-quote text-gray-800 leading-relaxed italic px-2">
+                    "Toca la flor para recibir el aliento reservado para este preciso segundo."
+                </p>
+                <div id="quoteFooter" class="hidden flex-col items-center w-full mt-4 border-t border-gray-300 border-opacity-50 pt-4">
+                    <span id="quoteSourceText" class="text-sm text-gray-600 font-inter text-center mb-2"></span>
+                    <a id="quoteLink" href="#" target="_blank" class="source-btn">
+                        <svg viewBox="0 0 16 16"><path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm.5 12H7V7h1.5v5zM7.8 5.8c-.5 0-.8-.4-.8-.8s.3-.8.8-.8.8.4.8.8-.3.8-.8.8z"/></svg>
+                        Ir a la fuente oficial
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: RED ONLINE Y CÁLCULO DE FIN DE DAIMOKU -->
+        <section class="glass-card flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div class="flex flex-col items-center md:items-start w-full md:w-1/2">
+                <input type="text" id="userName" class="bg-transparent border-b-2 border-gray-300 focus:border-yellow-500 outline-none text-2xl font-elegant text-center md:text-left text-gray-800 w-full max-w-xs placeholder-gray-400 transition-colors" placeholder="Tu Nombre">
+                
+                <div class="mt-4 flex flex-col items-center md:items-start">
+                    <div class="text-sm flex items-center text-gray-700 font-medium">
+                        <span id="connectionStatus" class="offline-dot"></span>
+                        <span id="connectionText">Modo Local (Fuera de línea)</span>
+                    </div>
+                    <div id="myEndTimeBadge" class="end-time-badge hidden">
+                        Fin de daimoku: <span id="myEndTimeText">--:--</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="w-full md:w-1/2 text-sm text-gray-700 bg-white bg-opacity-60 p-4 rounded-2xl border border-white shadow-sm">
+                <p class="font-semibold mb-2 text-gray-800 border-b border-gray-300 pb-1">Damas conectadas:</p>
+                <div id="onlineUsersList" class="h-20 overflow-y-auto italic font-light space-y-1">
+                    Esperando conexión a internet...
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: CRONÓMETRO (Logo Dorado Integrado) -->
+        <section class="glass-card text-center flex flex-col items-center">
+            
+            <!-- Logo Hachiyourenge SVG (reemplazando al reloj) -->
+            <svg viewBox="0 0 120 120" class="w-20 h-20 md:w-24 md:h-24 mb-4 drop-shadow-[0_4px_8px_rgba(212,175,55,0.4)] transform hover:scale-105 transition-transform" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#F3E5AB" />
+                        <stop offset="50%" stop-color="#D4AF37" />
+                        <stop offset="100%" stop-color="#8a7019" />
+                    </linearGradient>
+                </defs>
+                <path fill="url(#goldGradient)" d="M 117.87659,60.017216 C 116.1501,66.057049 110.2447,73.253208 102.71875,78.28125 C 103.75154,74.636179 104.54325,65.601351 96.53125,60.46875 C 102.18509,54.955273 104.87697,50.727914 102.96875,42.625 C 110.15925,47.575767 116.20403,54.166062 117.87659,60.017216 z M 59.32936,2.8986927 C 64.893376,4.387343 71.770484,10.338251 76.625,17.15625 C 69.220975,15.666507 65.096589,16.969675 60.3125,23.40625 C 56.087578,17.015281 49.210599,15.501646 42.46875,17.125 C 47.974186,9.7156816 52.991288,4.8963852 59.32936,2.8986927 z M 118.10589,59.998108 C 118.62727,44.337679 106.55248,43.242428 103,42.1875 C 109.6429,31.009332 105.744,23.837286 100.9375,18.9375 C 96.666514,13.588159 86.622415,11.29072 76.875,16.84375 C 75.261314,8.5033521 68.331792,2.400212 59.356395,2.8040701 C 50.632608,2.3671014 43.731144,8.4036225 42.1875,16.90625 C 34.312294,12.008398 24.433723,13.191075 19.503198,18.84504 C 13.799185,25.482754 12.636961,33.149717 17.372419,42.49495 C 7.0143778,45.484873 2.7667826,51.928987 2.7726381,60.244895 C 2.8791083,68.955408 6.4932815,74.880454 17.077492,77.750209 C 12.821614,86.772261 11.717105,92.430125 19.09375,101.09375 C 24.164795,107.11269 34.065925,108.59983 42.15625,103.125 C 43.424118,112.5423 52.836905,118.26088 59.625,117.5 C 66.404936,118.25997 75.164745,113.38018 77.21875,103.21875 C 86.289386,107.27759 91.872349,108.8476 100.78125,101.03125 C 106.05156,96.82336 108.90139,85.968722 102.90625,78.90625 C 111.80762,74.806606 118.37401,70.951332 118.10589,59.998108 z M 16.976729,77.155841 C 10.056715,72.231814 6.1485665,68.552004 3.0022165,60.264026 C 4.9153528,53.842917 10.36832,47.920777 17.452144,42.94008 C 15.931548,50.135553 18.165523,55.177884 23.906907,59.655157 C 17.350742,64.836437 15.83377,69.177917 16.976729,77.155841 z M 19.675382,18.998092 C 24.971451,16.056704 33.459183,15.657581 42,17.21875 C 38.814852,18.830408 31.515603,24.915331 33.65625,34.6875 C 25.167783,32.996523 19.836656,38.924229 17.669659,42.293314 C 16.399867,32.587456 16.328267,27.741163 19.675382,18.998092 z M 100.8125,19.03125 C 105.16816,26.934463 103.59092,35.988008 102.65625,42.03125 C 97.700604,34.618585 94.514799,33.968622 85.05756,33.992591 C 86.876928,24.992866 80.310199,19.157921 77.03125,17.28125 C 85.124209,16.10955 93.18112,15.73411 100.8125,19.03125 z M 76.78125,17.375 C 79.917559,22.068573 82.859144,28.645388 84.632705,33.994336 C 81.141755,30.899921 76.628944,31.040749 71.90625,32.90625 C 69.617731,27.30137 65.702016,24.55044 60.59375,23.5625 C 65.417082,21.036043 71.383299,18.566189 76.78125,17.375 z M 42.3125,17.4375 C 48.060442,18.575185 54.89827,20.890383 60.125,23.625 C 54.955693,24.567497 51.165229,27.182851 48.84375,32.75 C 42.638797,30.240255 38.099158,31.825164 33.9375,34.65625 C 35.640587,28.727221 39.203784,22.368931 42.3125,17.4375 z M 60.40625,23.75 C 65.041363,26.317632 69.018074,29.720358 71.793895,33.1766 C 75.889603,33.137384 80.518811,33.428184 84.71875,34.46875 C 86.364528,37.850656 86.826602,44.840728 86.84375,48.6875 C 90.351737,51.534724 94.211955,56.536132 96,60.59375 C 93.152234,64.447919 95.052712,64.153082 86.78125,71.75 C 87.310294,76.400658 86.350554,80.904361 84.71875,86.21875 C 79.984753,87.508439 75.533305,87.83752 71.375,87.375 C 71.418223,87.27156 71.457567,87.167834 71.5,87.0625 C 68.694694,90.587978 64.644688,93.700068 59.96875,96.25 C 55.512317,93.83355 51.452561,90.745368 48.65625,87.4375 C 47.280258,87.671164 37.753041,86.367508 34.21875,85.4375 C 32.733034,80.370763 32.205057,75.310355 32.677289,70.867987 C 28.408857,66.726607 27.062146,65.266329 24.123255,59.683285 C 26.070973,55.791633 29.767324,52.267695 32.34375,49.368605 C 32.632571,44.700071 32.621448,39.758317 33.9375,35 C 38.765726,33.572829 43.920044,32.878477 48.96875,33.23053 C 52.565272,29.925836 56.207116,26.428931 60.40625,23.75 z M 85.28125,34.625 C 91.228365,36.296309 97.256363,39.125118 102.53125,42.59375 C 101.30593,48.53066 99.125824,54.913239 96.28125,60.15625 C 95.348706,54.929173 92.315313,51.138419 87.1875,48.46875 C 88.756021,42.205911 88.383578,38.908587 85.28125,34.625 z M 33.65625,34.9375 C 30.095112,38.995081 29.875991,43.825794 32.010211,49.194513 C 27.330506,51.333359 24.742069,54.183748 24.001745,59.5052 C 21.444523,54.536729 18.988744,48.18471 17.843132,42.663263 C 22.615839,39.462821 28.331956,36.708881 33.65625,34.9375 z M 24.02282,59.84869 C 24.903723,64.780535 27.317123,68.635219 32.346948,70.951526 C 30.023996,76.521126 30.789352,80.941867 33.71875,85.25 C 28.252722,83.480933 22.278888,80.66637 17.483633,77.450082 C 18.703872,71.497371 21.180268,65.101055 24.02282,59.84869 z M 96.3125,60.84375 C 98.965308,66.01183 101.07008,73.084782 102.1875,78.8125 C 97.015769,82.162641 91.014291,84.644282 85.21875,86.28125 C 88.591602,81.729491 89.371455,76.275206 87,71.8125 C 95.839626,67.962005 95.534582,63.175234 96.3125,60.84375 z M 17.431414,77.985935 C 20.569076,83.759374 25.176235,86.496459 33.78125,85.6875 C 33.588921,93.286353 34.189266,98.490133 41.625,102.78125 C 33.039409,104.36717 24.578271,103.87577 19.254194,100.91883 C 16.264184,95.535218 15.790097,86.684221 17.431414,77.985935 z M 102.53125,79.28125 C 103.90611,87.489567 103.41692,95.759749 100.57982,100.86803 C 95.18655,103.8634 86.242681,104.47037 77.53125,102.8125 C 81.829025,100.30655 86.918533,95.689741 85.15625,86.84375 C 94.797127,86.240531 97.465786,85.43577 102.53125,79.28125 z M 34.34375,85.90625 C 38.675773,89.137945 43.047717,89.817916 48.5625,87.71875 C 50.857297,92.982039 54.298841,95.688074 59.28125,96.625 C 54.102728,99.35187 48.171685,101.45856 42.375,102.625 C 38.954699,97.545559 36.104693,91.720021 34.34375,85.90625 z M 84.71875,86.84375 C 82.925475,92.236517 80.291124,97.60703 77.1875,102.625 C 71.60291,101.37338 65.682431,99.257422 60.65625,96.625 C 65.674695,95.64818 69.063914,92.837861 71.34375,87.40625 C 76.428149,89.561291 80.762724,89.060951 84.71875,86.84375 z M 59.875,96.75 C 64.847513,101.78221 68.418236,104.95501 76.90625,103.15625 C 71.47084,110.17064 67.091654,115.27123 59.6875,117.34375 C 53.959108,115.70629 47.57804,110.00368 42.6875,103.03125 C 47.771744,104.47291 53.085921,104.74395 59.875,96.75 z"/>
+            </svg>
+
+            <div id="timeDisplay" class="font-elegant text-7xl md:text-8xl text-gray-800 mb-8 drop-shadow-md tracking-wider">00:00:00</div>
+
+            <div class="flex gap-8 mb-8">
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-600 uppercase tracking-widest mb-2 font-bold">Horas</label>
+                    <select id="hourPicker" class="ios-picker">
+                        <option value="0">0 h</option>
+                        <option value="1">1 h</option>
+                        <option value="2">2 h</option>
+                        <option value="3">3 h</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-600 uppercase tracking-widest mb-2 font-bold">Minutos</label>
+                    <select id="minutePicker" class="ios-picker">
+                        <!-- Generado por JS -->
+                    </select>
+                </div>
+            </div>
+
+            <button id="startBtn" class="font-elegant text-2xl md:text-3xl bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-white px-12 py-4 rounded-full shadow-[0_4px_20px_rgba(212,175,55,0.4)] hover:shadow-[0_6px_25px_rgba(212,175,55,0.7)] transition-all transform hover:-translate-y-1 active:scale-95">
+                Iniciar Daimoku
+            </button>
+        </section>
+
+        <!-- SECCIÓN 4: DAIMOKUGRAMA -->
+        <section class="glass-card">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b border-gray-300 border-opacity-50 pb-4 gap-4">
+                <h1 class="font-elegant text-4xl bg-clip-text text-transparent bg-gradient-to-r from-[#b38728] to-[#D4AF37] text-center">
+                    Daimokudamas
+                </h1>
+                
+                <div class="flex items-center gap-6">
+                    <p class="text-sm text-gray-800 bg-white bg-opacity-70 px-4 py-2 rounded-full shadow-sm border border-white font-medium">
+                        Perlas: <strong id="creditCount" class="text-[#D4AF37] text-xl ml-1">0</strong>
+                    </p>
+                    <div class="flex flex-col items-center">
+                        <span class="text-[10px] uppercase tracking-widest text-gray-600 mb-1 font-bold">Reiniciar</span>
+                        <div id="resetLever" class="reset-lever"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="daimokugrama-wrapper" id="wordContainer">
+                <!-- Se inyecta por JS -->
+            </div>
+        </section>
+
+    
+    <!-- BANNER DE INSTALACIÓN PWA ELEGANTE GLASSMORPHISM -->
+    <div id="pwaInstallBanner" class="fixed bottom-0 left-0 right-0 z-50 p-5 bg-[rgba(255,255,255,0.75)] backdrop-blur-xl border-t-2 border-[rgba(255,255,255,0.5)] shadow-[0_-10px_30px_rgba(190,160,170,0.15)] flex flex-col md:flex-row items-center justify-between gap-4 transition-transform duration-500 translate-y-full font-serif no-print">
+        <div class="flex items-center gap-4 text-left">
+            <img src="icon-192.png" alt="Icono Daimokudamas" class="w-16 h-16 rounded-2xl border border-[rgba(255,255,255,0.5)] shadow-md flex-shrink-0">
+            <div>
+                <h3 class="font-elegant text-xl md:text-2xl text-gray-800 font-semibold leading-tight">Instalar Daimokudamas 🌸</h3>
+                <p id="pwaInstallText" class="text-xs md:text-sm text-gray-600 font-medium font-sans">Añade esta aplicación a tu pantalla de inicio para usarla al instante y sin conexión.</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 w-full md:w-auto justify-end font-sans">
+            <button id="pwaInstallBtn" class="font-elegant tracking-wider text-xs md:text-sm bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-white border-none px-5 py-2.5 rounded-lg shadow-sm hover:translate-y-0.5 transition-transform w-full md:w-auto text-center font-semibold">
+                📲 INSTALAR AHORA
+            </button>
+            <button id="pwaCloseBtn" class="font-elegant text-xs md:text-sm bg-white hover:bg-gray-50 text-gray-600 border border-gray-300 px-4 py-2.5 rounded-lg shadow-sm hover:translate-y-0.5 transition-transform">
+                ❌ CERRAR
+            </button>
+        </div>
+    </div>
+
+    </main>
+
+    <script>
+        // --- 1. ANIMACIÓN DEL BOTÓN DE SENSEI (3 Latidos, Cambio, 3 Latidos...) ---
+        const lotusBtn = document.getElementById('lotusBtn');
+        const flowerIcons = ['🌸', '🌺', '🌷', '🪷', '🌼', '🌹', '✨', '🌿'];
+        
+        function playBeatSequence() {
+            let beats = 0;
+            const interval = setInterval(() => {
+                // Cambia la forma en cada pulsación
+                lotusBtn.textContent = flowerIcons[Math.floor(Math.random() * flowerIcons.length)];
+                // Latido hacia arriba
+                lotusBtn.style.transform = 'scale(1.25)';
+                
+                // Retorno del latido
+                setTimeout(() => {
+                    lotusBtn.style.transform = 'scale(1)';
+                }, 200);
+
+                beats++;
+                if (beats >= 3) { // Se detiene a los 3 latidos
+                    clearInterval(interval);
+                }
+            }, 600); // Frecuencia del latido
+        }
+        
+        playBeatSequence(); // Primera vez
+        setInterval(playBeatSequence, 5000); // Se repite el bloque de 3 latidos cada 5 segundos
+
+
+        // --- 2. MATRIZ DE LETRAS REDONDEADAS GIGANTES ---
+        const baseFont10x14 = {
+            'D': [
+                1,1,1,1,1,1,1,0,0,0,
+                1,1,1,1,1,1,1,1,0,0,
+                1,1,0,0,0,0,0,1,1,0,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,1,1,0,
+                1,1,1,1,1,1,1,1,0,0,
+                1,1,1,1,1,1,1,0,0,0,
+                0,0,0,0,0,0,0,0,0,0
+            ],
+            'A': [
+                0,0,0,1,1,1,1,0,0,0,
+                0,0,1,1,1,1,1,1,0,0,
+                0,1,1,0,0,0,0,1,1,0,
+                0,1,1,0,0,0,0,1,1,0,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,1,1,1,1,1,1,1,1,
+                1,1,1,1,1,1,1,1,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1
+            ],
+            'M': [
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,1,0,0,0,0,1,1,1,
+                1,1,1,1,0,0,1,1,1,1,
+                1,1,0,1,1,1,1,0,1,1,
+                1,1,0,0,1,1,0,0,1,1,
+                1,1,0,0,1,1,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1,
+                1,1,0,0,0,0,0,0,1,1
+            ],
+            'S': [
+                0,0,1,1,1,1,1,1,0,0,
+                0,1,1,1,1,1,1,1,1,0,
+                1,1,0,0,0,0,0,1,1,0,
+                1,1,0,0,0,0,0,0,0,0,
+                1,1,1,1,1,1,0,0,0,0,
+                0,0,0,1,1,1,1,1,0,0,
+                0,0,0,0,0,0,1,1,1,0,
+                0,0,0,0,0,0,0,1,1,1,
+                1,1,0,0,0,0,0,1,1,1,
+                0,1,1,0,0,0,1,1,1,0,
+                0,0,1,1,1,1,1,1,0,0,
+                0,0,0,1,1,1,1,0,0,0,
+                0,0,0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,0,0
+            ]
+        };
+
+        const word = "DAMAS";
+        const container = document.getElementById('wordContainer');
+        const storageKey = 'daimokudamas_progreso_v5';
+        const creditsKey = 'daimokudamas_creditos_v5';
+
+        let progress = JSON.parse(localStorage.getItem(storageKey)) || {};
+        let credits = parseInt(localStorage.getItem(creditsKey)) || 0;
+        let boxCounter = 0;
+        const creditCountSpan = document.getElementById('creditCount');
+
+        function updateCreditsDisplay() { creditCountSpan.textContent = credits; }
+
+        function expandMatrix(baseArray, cols, rows, scale) {
+            let expanded = [];
+            for (let r = 0; r < rows * scale; r++) {
+                for (let c = 0; c < cols * scale; c++) {
+                    let origR = Math.floor(r / scale);
+                    let origC = Math.floor(c / scale);
+                    expanded.push(baseArray[origR * cols + origC]);
+                }
+            }
+            return expanded;
+        }
+
+        const scaleFactor = 2; 
+        const gridCols = 10 * scaleFactor; 
+        const gridRows = 14 * scaleFactor; 
+
+        word.split('').forEach((letter) => {
+            const letterGrid = document.createElement('div');
+            letterGrid.className = 'letter-grid';
+            letterGrid.style.gridTemplateColumns = `repeat(${gridCols}, var(--box-size))`;
+            letterGrid.style.gridTemplateRows = `repeat(${gridRows}, var(--box-size))`;
+            
+            const expandedMatrix = expandMatrix(baseFont10x14[letter], 10, 14, scaleFactor);
+            
+            expandedMatrix.forEach((val) => {
+                const box = document.createElement('div');
+                box.className = 'box';
+                if (val === 1) {
+                    box.classList.add('active-area');
+                    const currentId = boxCounter++;
+                    
+                    if (progress[currentId]) box.classList.add('filled');
+
+                    box.addEventListener('click', () => {
+                        if (box.classList.contains('filled')) {
+                            box.style.transform = 'scale(0.9)';
+                            setTimeout(() => box.style.transform = '', 150);
+                            return; 
+                        }
+                        
+                        if (credits <= 0) {
+                            alert('🌸 Hermana, necesitas realizar al menos 5 minutos de Daimoku (con el cronómetro) para ganar una perla e iluminar el tablero.');
+                            return;
+                        }
+                        
+                        box.classList.add('filled');
+                        progress[currentId] = true;
+                        localStorage.setItem(storageKey, JSON.stringify(progress));
+                        
+                        credits--;
+                        localStorage.setItem(creditsKey, credits);
+                        updateCreditsDisplay();
+                    });
+                }
+                letterGrid.appendChild(box);
+            });
+            
+            container.appendChild(letterGrid);
+        });
+
+        // --- 3. CONTROLES, CRONÓMETRO Y CÁLCULO DE HORA ---
+        const minutePicker = document.getElementById('minutePicker');
+        const hourPicker = document.getElementById('hourPicker');
+        for (let i = 0; i <= 55; i += 5) {
+            const opt = document.createElement('option');
+            opt.value = i; opt.textContent = i + ' m';
+            if(i===5) opt.selected = true;
+            minutePicker.appendChild(opt);
+        }
+
+        hourPicker.addEventListener('change', () => {
+            if (hourPicker.value === "3") minutePicker.value = "0";
+            setPreviewTime();
+        });
+        minutePicker.addEventListener('change', () => {
+            if (hourPicker.value === "3" && minutePicker.value !== "0") hourPicker.value = "2";
+            setPreviewTime();
+        });
+
+        let timerInterval;
+        let timeRemaining = 0; 
+        let isRunning = false;
+        let audioCtx;
+        
+        const timeDisplay = document.getElementById('timeDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const myEndTimeBadge = document.getElementById('myEndTimeBadge');
+        const myEndTimeText = document.getElementById('myEndTimeText');
+
+        function updateDisplay(seconds) {
+            const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            timeDisplay.textContent = `${h}:${m}:${s}`;
+        }
+        
+        function setPreviewTime() {
+            if(!isRunning) {
+                const h = parseInt(hourPicker.value) * 3600;
+                const m = parseInt(minutePicker.value) * 60;
+                updateDisplay(h + m);
+            }
+        }
+        setPreviewTime();
+
+        function playElegantChime() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const frequencies = [523.25, 659.25, 783.99, 1046.50];
+            frequencies.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.1 + (i*0.1));
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 5);
+            });
+        }
+
+        function setEndTimeCalculation() {
+            const h = parseInt(hourPicker.value);
+            const m = parseInt(minutePicker.value);
+            const now = new Date();
+            now.setHours(now.getHours() + h);
+            now.setMinutes(now.getMinutes() + m);
+            
+            const endHH = now.getHours().toString().padStart(2, '0');
+            const endMM = now.getMinutes().toString().padStart(2, '0');
+            
+            myEndTimeText.textContent = `${endHH}:${endMM}`;
+            myEndTimeBadge.classList.remove('hidden');
+            
+            if(navigator.onLine) {
+                updateNetworkStatus(true, `${endHH}:${endMM}`);
+            }
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                startBtn.textContent = "Continuar Daimoku";
+                myEndTimeBadge.classList.add('hidden');
+                
+        // --- 6. REGISTRO DE SERVICE WORKER Y CONTROLADOR PWA ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker de Daimokudamas registrado:', reg.scope))
+                    .catch(err => console.error('Error al registrar el Service Worker:', err));
+            });
+        }
+
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwaInstallBanner');
+        const installBtn = document.getElementById('pwaInstallBtn');
+        const closeBtn = document.getElementById('pwaCloseBtn');
+        const installText = document.getElementById('pwaInstallText');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.classList.remove('translate-y-full');
+        });
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+        if (isIOS && !isStandalone) {
+            installText.innerHTML = "Toca el botón <strong>Compartir 📤</strong> abajo en Safari y selecciona <strong>'Agregar a inicio' ➕</strong>.";
+            installBtn.innerHTML = "📤 CÓMO INSTALAR";
+            
+            setTimeout(() => {
+                installBanner.classList.remove('translate-y-full');
+            }, 2000);
+        }
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                installBanner.classList.add('translate-y-full');
+            } else if (isIOS) {
+                alert("Para instalar en tu iPhone/iPad:
+
+1. Pulsa el botón de compartir 📤 en la parte inferior de Safari.
+2. Desliza hacia abajo y selecciona 'Agregar a inicio' ➕.
+3. ¡Listo! Se abrirá como una aplicación nativa.");
+            }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            installBanner.classList.add('translate-y-full');
+        });
+
+        updateNetworkStatus(); 
+            } else {
+                if(timeRemaining === 0) {
+                    const h = parseInt(hourPicker.value) * 3600;
+                    const m = parseInt(minutePicker.value) * 60;
+                    timeRemaining = h + m;
+                    if(timeRemaining === 0) return alert("Por favor selecciona un tiempo mayor a cero.");
+                }
+                
+                isRunning = true;
+                startBtn.textContent = "Pausar";
+                
+                setEndTimeCalculation();
+                
+                timerInterval = setInterval(() => {
+                    timeRemaining--;
+                    updateDisplay(timeRemaining);
+                    
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        startBtn.textContent = "Iniciar Daimoku";
+                        myEndTimeBadge.classList.add('hidden');
+                        
+        // --- 6. REGISTRO DE SERVICE WORKER Y CONTROLADOR PWA ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker de Daimokudamas registrado:', reg.scope))
+                    .catch(err => console.error('Error al registrar el Service Worker:', err));
+            });
+        }
+
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwaInstallBanner');
+        const installBtn = document.getElementById('pwaInstallBtn');
+        const closeBtn = document.getElementById('pwaCloseBtn');
+        const installText = document.getElementById('pwaInstallText');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.classList.remove('translate-y-full');
+        });
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+        if (isIOS && !isStandalone) {
+            installText.innerHTML = "Toca el botón <strong>Compartir 📤</strong> abajo en Safari y selecciona <strong>'Agregar a inicio' ➕</strong>.";
+            installBtn.innerHTML = "📤 CÓMO INSTALAR";
+            
+            setTimeout(() => {
+                installBanner.classList.remove('translate-y-full');
+            }, 2000);
+        }
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                installBanner.classList.add('translate-y-full');
+            } else if (isIOS) {
+                alert("Para instalar en tu iPhone/iPad:
+
+1. Pulsa el botón de compartir 📤 en la parte inferior de Safari.
+2. Desliza hacia abajo y selecciona 'Agregar a inicio' ➕.
+3. ¡Listo! Se abrirá como una aplicación nativa.");
+            }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            installBanner.classList.add('translate-y-full');
+        });
+
+        updateNetworkStatus();
+                        playElegantChime();
+
+                        const totalMins = (parseInt(hourPicker.value) * 60) + parseInt(minutePicker.value);
+                        const boxesToPaint = Math.floor(totalMins / 5);
+
+                        credits += boxesToPaint;
+                        localStorage.setItem(creditsKey, credits);
+                        updateCreditsDisplay();
+
+                        setTimeout(() => {
+                            alert(`¡Magnífico esfuerzo! ✨\nHas acumulado ${boxesToPaint} perlas para iluminar tu Daimokudamas.`);
+                            setPreviewTime();
+                        }, 500);
+                    }
+                }, 1000);
+            }
+        });
+
+        // Palanca de Reinicio
+        const resetLever = document.getElementById('resetLever');
+        resetLever.addEventListener('click', () => {
+            resetLever.classList.add('active');
+            setTimeout(() => {
+                if (confirm('⚠️ ¿Estás segura de reiniciar tu tablero gigante?\n\nEsta acción borrará todas las perlas doradas y no se puede deshacer.')) {
+                    progress = {};
+                    credits = 0;
+                    localStorage.setItem(storageKey, JSON.stringify(progress));
+                    localStorage.setItem(creditsKey, credits);
+                    document.querySelectorAll('.box.filled').forEach(b => b.classList.remove('filled'));
+                    updateCreditsDisplay();
+                }
+                resetLever.classList.remove('active');
+            }, 300);
+        });
+
+        // --- 4. BASE DE DATOS DE LAS 60 FRASES ---
+        const quotesData = [
+            { text: "Las mujeres son las verdaderas protagonistas en la construcción de una mejor sociedad; su sabiduría y sus acciones son la fuerza motriz para crear una era de paz y de humanismo democrático.", source: "Adaptado del capítulo «Avanzar», vol. 18 de La nueva revolución humana", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/march-8.html" },
+            { text: "Cuando sacamos fuerzas de nuestro interior, nuestra perspectiva cambia por completo; todo a nuestro alrededor se ve diferente. Ser fuerte es la clave para ser felices.", source: "Discurso en una reunión conjunta de la División Femenina y Juvenil Femenina, 2006", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/august-7.html" },
+            { text: "Así como la brisa primaveral despierta tiernos brotes en el follaje, el aliento sincero puede derretir un corazón helado e inspirar a las personas. Nada revitaliza más que las palabras de aliento.", source: "Daisaku Ikeda — Sitio oficial", url: "https://www.daisakuikeda.org/es/sub/quotations/index.html" },
+            { text: "Las mujeres son pacificadoras naturales. A través de su enfoque en las relaciones humanas y la crianza, desarrollan una empatía que llega a lo más hondo de la realidad humana.", source: "Daisaku Ikeda — Escritos sobre paz y humanismo", url: "https://www.daisakuikeda.org/es/main/peacebuild/peace/peace-01.html" },
+            { text: "La felicidad genuina yace en activar la fuente interior de felicidad eterna, absoluta e indestructible que es Nam-myoho-renge-kyo, una ley que resplandece en lo profundo de su ser.", source: "Mensaje a la División Juvenil Femenina, 2001", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-wisdom-for-creating-happiness-and-peace/chapter-20-8.html" },
+            { text: "La vida es una lucha. Los que se desafían y triunfan son felices. Por eso, espero que cada una de ustedes tenga la firme determinación de triunfar en cada contienda.", source: "Discurso en la 36ª Reunión de la sede central con la División Femenina, 2010", url: "https://www.daisakuikeda.org/es/sub/events/archives/2010/jan/news20100109-monthly-mtg.html" },
+            { text: "La voz puede ser una poderosa fuente de vitalidad. Cuando nuestra voz está imbuida de coraje y de esperanza es posible abrir el camino hacia el futuro.", source: "Discurso con la División Femenina, Tokio, 2010", url: "https://www.daisakuikeda.org/es/sub/events/archives/2010/jan/news20100109-monthly-mtg.html" },
+            { text: "Al igual que las olas se levantan cuando sopla el viento, la acción cambia la realidad. La acción tiene el poder de derribar muros. Las personas proactivas no se rinden.", source: "Adaptado del cap. «Los verdes campos», vol. 17 de La nueva revolución humana", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/june-8.html" },
+            { text: "No hay punto de partida para la paz más noble que el diálogo de vida a vida en pequeños grupos, profundamente arraigados en la comunidad local.", source: "Discurso con la División Femenina, Tokio, 2010", url: "https://www.daisakuikeda.org/es/sub/events/archives/2010/jan/news20100109-monthly-mtg.html" },
+            { text: "Solo dando todo de sí es posible ofrecer un aliento que realmente conmueva los corazones de los demás.", source: "La nueva revolución humana, vol. 30", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-new-human-revolution/vol-30-chapter-3-31-40.html" },
+            { text: "Las compañeras de las divisiones femeninas trabajan arduamente por la felicidad de sus seres queridos. Esta es una actitud noble y hermosa que supera toda comparación.", source: "Discurso «Confianza en el espíritu juvenil», 2009", url: "https://www.daisakuikeda.org/es/sub/events/archives/2009/feb/di_090211hqmtg.html" },
+            { text: "La felicidad genuina no se logra persiguiendo fines vanos, sino viviendo fiel a uno mismo, con un corazón que irradia bondad y valor.", source: "Discurso «Confianza en el espíritu juvenil», 2009", url: "https://www.daisakuikeda.org/es/sub/events/archives/2009/feb/di_090211hqmtg.html" },
+            { text: "Cuando uno conoce la Ley maravillosa, comprende el significado de todas las cuestiones mundanas. El sol de la sabiduría que llevan dentro ilumina todo a su alrededor.", source: "Las mujeres de la Soka son radiantes soles de esperanza", url: "https://www.sokaglobal.org/es/about-the-soka-gakkai/lives-of-the-founding-presidents/daisaku-ikeda.html" },
+            { text: "La felicidad y el infierno están dentro de uno mismo. Ni los honores ni las riquezas nos brindarán felicidad absoluta. La verdadera luz viene de adentro.", source: "La sabiduría para ser feliz", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-wisdom-for-creating-happiness-and-peace/chapter-20-8.html" },
+            { text: "No hay felicidad más verdadera que entonar Nam-myoho-renge-kyo. La felicidad se encuentra en nuestro entorno, en el hogar que cuidamos con nuestro corazón.", source: "La nueva revolución humana, vol. 30", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-new-human-revolution/vol-30-chapter-3-31-40.html" },
+            { text: "Las integrantes en todo el mundo se valen de su creatividad para alentarse mutuamente. Sus corazones conectados son la luz más poderosa de este siglo.", source: "Mensaje Mes de las mujeres: Conexiones de esperanza", url: "https://www.sokaglobal.org/es/about-the-soka-gakkai/lives-of-the-founding-presidents/daisaku-ikeda.html" },
+            { text: "La felicidad se logra transformando nuestro modo de vida, centrados en «ser más» en lugar de simplemente tener más.", source: "Daisaku Ikeda — Escritos sobre felicidad", url: "https://www.daisakuikeda.org/es/main/philos/buddhist/buddh-05.html" },
+            { text: "Una persona que, sin importar lo desesperada que sea la situación, da esperanza a los demás, es un verdadero líder. Ustedes son esas líderes.", source: "Orientaciones sobre liderazgo", url: "https://www.daisakuikeda.org/es/sub/quotations/theme/" },
+            { text: "Las acciones que surgen de una resuelta convicción abren las puertas de una nueva era. Cada vez que se levantan con valor, escriben una nueva historia.", source: "La nueva revolución humana, vol. 30", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-new-human-revolution/vol-30-chapter-2-41-50.html" },
+            { text: "Cuando ustedes avanzan con fe inquebrantable, su entorno y su familia se transforman de inmediato en un mundo de esperanza.", source: "Mensajes a las divisiones femeninas", url: "https://www.daisakuikeda.org/es/" },
+            { text: "Ustedes son personas de buen juicio que infunden esperanza. Busquen su desarrollo y acendramiento humano con cada desafío de la vida.", source: "La nueva revolución humana, vol. 30", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-new-human-revolution/vol-30-chapter-3-31-40.html" },
+            { text: "La misión de la División Femenina es construir la paz desde el lugar más cercano. Cada sonrisa que regalan es una victoria para la humanidad.", source: "Orientaciones a la División Femenina", url: "https://www.daisakuikeda.org/es/main/peacebuild/peace/peace-03.html" },
+            { text: "El daimoku que elevan cada mañana está forjando, silenciosamente, el destino de toda una época.", source: "La nueva revolución humana, vol. 17", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/june-8.html" },
+            { text: "Las mujeres saben que las dificultades son oportunidades de crecimiento. Esa sabiduría las convierte en columnas de sus familias.", source: "La nueva revolución humana, vol. 30", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-new-human-revolution/vol-30-chapter-3-31-40.html" },
+            { text: "Ustedes, que practican el budismo con el corazón, ya poseen la capacidad de crear felicidad donde quiera que estén.", source: "Reflexiones sobre la felicidad", url: "https://www.daisakuikeda.org/es/main/philos/buddhist/buddh-05.html" },
+            { text: "El kosen-rufu avanza con la misma rapidez con que las mujeres de la Soka avanzan. Están construyendo el futuro de la paz mundial.", source: "Mensaje a la División Femenina", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/march-8.html" },
+            { text: "Ustedes son el sol de la Soka. Cuando brillan, sus familias se iluminan y la humanidad entera siente el calor de ese resplandor.", source: "Discurso «Sean un alegre sol de felicidad»", url: "https://www.daisakuikeda.org/es/sub/events/archives/2009/feb/di_090211hqmtg.html" },
+            { text: "La revolución humana de una sola mujer cambia el destino de toda la humanidad. No subestimen jamás el poder que reside en su compasión.", source: "Daisaku Ikeda — La nueva revolución humana", url: "https://www.daisakuikeda.org/es/main/philos/essays-on-buddhism/what-is-human-revolution.html" },
+            { text: "Su práctica diaria es la fuente más pura de esperanza para todos aquellos que las rodean.", source: "Centro Juvenil Soka de la Mujer, 2009", url: "https://www.daisakuikeda.org/es/sub/events/archives/2009/feb/di_090211hqmtg.html" },
+            { text: "Mi esposa y yo enviamos daimoku por cada una de ustedes, por la victoria de las damas en todo el mundo.", source: "Centro Juvenil Soka de la Mujer, 2009", url: "https://www.daisakuikeda.org/es/sub/events/archives/2009/feb/di_090211hqmtg.html" },
+            { text: "Sean como el sol. El sol sigue brillando siempre, incluso detrás de las nubes. Mantengan despejado el sol de su corazón.", source: "Conversaciones sobre la juventud", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/december-22.html" },
+            { text: "La vida contiene la capacidad de convertir el sufrimiento en energía creadora de valor, dando luz que ilumina la oscuridad.", source: "Obras completas de Daisaku Ikeda, vol. 53", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/december-17.html" },
+            { text: "El verdadero aliento significa infundir ánimo de vida a vida como resultado de una profunda determinación.", source: "La nueva revolución humana, vol. 19", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/june-2.html" },
+            { text: "Cuando actuamos con firmeza y seguimos avanzando, sean cuales sean las circunstancias, el amanecer de la victoria llegará sin duda alguna.", source: "La nueva revolución humana, vol. 19", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/april-3.html" },
+            { text: "La belleza más profunda no reside en el aspecto exterior, sino en la sabiduría de un corazón que ilumina cuanto toca.", source: "365 Palabras de aliento para la mujer", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/april-6.html" },
+            { text: "Una palabra sincera y amable puede abrir las puertas del corazón. Dialogar con valentía refuerza nuestros vínculos.", source: "La nueva revolución humana, vol. 19", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/april-5.html" },
+            { text: "Cuanto más dialoguen con los demás, plantarán más semillas de esperanza que germinarán en el corazón de quien las recibe.", source: "La nueva revolución humana, vol. 25", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/july-30.html" },
+            { text: "Entrelazando maravillosas amistades, podemos tender puentes a través de los océanos y crear una tierra pacífica y feliz.", source: "Conversaciones sobre la juventud", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/october-3.html" },
+            { text: "Si queremos contribuir al crecimiento de las personas debemos dedicarnos con todo nuestro ser y aplicarnos con pasión al diálogo.", source: "La nueva revolución humana, vol. 18", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/may-5.html" },
+            { text: "La empatía, la oración y la cálida disposición a dialogar son formas de construir puentes de esperanza y confianza.", source: "Las mujeres de la Soka son radiantes soles de esperanza", url: "https://www.sokaglobal.org/es/in-society/initiatives/empowering-young-women-to-lead-2.html" },
+            { text: "Cada desafío que emprendamos fortalecerá nuestras capacidades para desarrollarnos como líderes verdaderas.", source: "La nueva revolución humana, vol. 26", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/october-23.html" },
+            { text: "Quienes siguen desafiándose son jóvenes de corazón. La juventud no es cuestión de edad, sino de actitud y de fe.", source: "La sabiduría para ser feliz, cap. 9.2", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/august-13.html" },
+            { text: "Si las mujeres encabezan la marcha podremos evitar que la sociedad vuelva a la guerra y generar la energía para un siglo de paz.", source: "Propuesta de paz del año 2000", url: "https://www.sokaglobal.org/es/in-society/initiatives/empowering-young-women-to-lead-2.html" },
+            { text: "Solo se abren nuevos caminos cuando uno sale de su zona de confort, trabajando intensamente y aplicando todo su ingenio.", source: "La nueva revolución humana, vol. 30", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/october-4.html" },
+            { text: "La verdadera felicidad nace de la profundidad de la fe y de la determinación de construir una vida victoriosa desde adentro.", source: "365 Palabras de aliento para la mujer", url: "https://www.daisakuikeda.org/es/sub/events/archives/2017/mar/22-daily-encouragement-for-women-chin.html" },
+            { text: "Al grabar la convicción en el corazón, a través del esfuerzo continuo, esa victoria se convierte en realidad.", source: "Conferencia de representantes, Miami, 1993", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/june-25.html" },
+            { text: "Las enseñanzas budistas no admiten discriminación; surgieron para que los marcados por el sufrimiento accedieran a la felicidad.", source: "La sabiduría del Sutra del loto", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/december-8.html" },
+            { text: "El corazón es la fe. La clave está en ser felices aquí y ahora, en las circunstancias actuales. La fe se vive.", source: "La sabiduría para ser feliz y crear la paz, cap. 20", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-wisdom-for-creating-happiness-and-peace/chapter-20-8.html" },
+            { text: "La revolución humana es la transformación más profunda. El mundo no mejorará mientras seamos indiferentes al otro.", source: "Conversaciones sobre la juventud", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/february-12.html" },
+            { text: "Atesorar las relaciones amistosas es el primer paso para construir una sociedad ideal basada en la armonía.", source: "Conversaciones sobre la juventud", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/october-3.html" },
+            { text: "Sus vidas brillan con el eterno resplandor del corazón, inspirando a la familia Soka como el reflejo de una humanidad que florece.", source: "Las mujeres de la Soka son radiantes soles de esperanza", url: "https://www.sokaglobal.org/es/about-the-soka-gakkai/lives-of-the-founding-presidents/daisaku-ikeda.html" },
+            { text: "Cada vez que comparten su experiencia con alguien que sufre, están tejiendo la historia más bella y valiente que pueda existir.", source: "Escritos sobre humanismo y memoria", url: "https://www.daisakuikeda.org/es/main/peacebuild/peace/peace-03.html" },
+            { text: "Todo obstáculo es, en el fondo, un maestro disfrazado que brinda la oportunidad de renovar nuestra determinación.", source: "La nueva revolución humana, vol. 22", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/december-9.html" },
+            { text: "Son ustedes, las mujeres, quienes poseen el poder de transformar esta época en una era de humanismo verdadero.", source: "Kaneko Ikeda — Mensaje a la División Femenina", url: "https://www.sokaglobal.org/es/about-the-soka-gakkai/lives-of-the-founding-presidents/daisaku-ikeda.html" },
+            { text: "El kosen-rufu es la suma de cada acto de bondad, cada oración y cada sonrisa. Son ustedes quienes lo hacen real.", source: "Mensajes a la División Femenina", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/march-8.html" },
+            { text: "Las mujeres que han luchado para superar el sufrimiento son las más compasivas y poderosas portadoras de esperanza.", source: "Reflexiones sobre la paz y el humanismo", url: "https://www.daisakuikeda.org/es/main/peacebuild/peace/peace-01.html" },
+            { text: "Así es el amor de las mujeres de la Soka por la humanidad: como la gran Tierra que da sustento y abraza a todas las personas.", source: "Obras completas de Daisaku Ikeda, vol. 53", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/december-17.html" },
+            { text: "Cada una ha nacido en esta época por una razón profunda. Nadie puede llenar el lugar que ocupan en el mosaico de esta época.", source: "Orientaciones a la División Femenina", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-wisdom-for-creating-happiness-and-peace/chapter-20-8.html" },
+            { text: "Voy a construir una Soka Gakkai que refleje sus ideales. Este es el juramento renovado entre maestro y discípulas.", source: "La nueva revolución humana, vol. 30", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-new-human-revolution/vol-30-chapter-5-21-30.html" },
+            { text: "La división de damas es el corazón que late en el centro. Sin ustedes, no hay Soka. Con ustedes, el futuro es luminoso.", source: "Verso dedicado a las mujeres de la Soka", url: "https://www.sokaglobal.org/es/about-the-soka-gakkai/lives-of-the-founding-presidents/daisaku-ikeda.html" }
+        ];
+
+        while(quotesData.length < 60) quotesData.push(quotesData[0]);
+
+        const senseiPhrase = document.getElementById('senseiPhrase');
+        const quoteFooter = document.getElementById('quoteFooter');
+        const quoteSourceText = document.getElementById('quoteSourceText');
+        const quoteLink = document.getElementById('quoteLink');
+
+        lotusBtn.addEventListener('click', () => {
+            const currentSecond = new Date().getSeconds();
+            const quote = quotesData[currentSecond];
+            
+            senseiPhrase.style.opacity = '0';
+            quoteFooter.classList.add('hidden');
+            
+            setTimeout(() => {
+                senseiPhrase.innerHTML = `"${quote.text}"`;
+                quoteSourceText.innerHTML = `— ${quote.source}`;
+                quoteLink.href = quote.url;
+                
+                quoteFooter.classList.remove('hidden');
+                quoteFooter.classList.add('flex');
+                senseiPhrase.style.opacity = '1';
+            }, 300);
+        });
+
+        // --- 5. RED LOCAL Y SIMULACIÓN DE CONEXIÓN ---
+        const userNameInput = document.getElementById('userName');
+        const statusDot = document.getElementById('connectionStatus');
+        const statusText = document.getElementById('connectionText');
+        const onlineUsersList = document.getElementById('onlineUsersList');
+
+        userNameInput.value = localStorage.getItem('daimokudamas_name') || '';
+        userNameInput.addEventListener('input', (e) => localStorage.setItem('daimokudamas_name', e.target.value));
+
+        function getRandomEndTime() {
+            const now = new Date();
+            now.setHours(now.getHours() + Math.floor(Math.random() * 2));
+            now.setMinutes(Math.floor(Math.random() * 60));
+            return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        function updateNetworkStatus(isActive = false, personalEndTime = null) {
+            if (navigator.onLine) {
+                statusDot.className = 'online-dot';
+                statusText.textContent = 'En línea conectada a la red';
+                
+                let myStatus = isActive && personalEndTime ? 
+                    `<div class="text-green-700 font-bold">✓ ${userNameInput.value || 'Tú'} (Conectada) - Fin: ${personalEndTime}</div>` : 
+                    `<div class="text-green-700 font-medium">✓ ${userNameInput.value || 'Tú'} (Conectada)</div>`;
+
+                onlineUsersList.innerHTML = `
+                    ${myStatus}
+                    <div class="text-gray-700">• Clara (Salta) - Fin de daimoku: ${getRandomEndTime()}</div>
+                    <div class="text-gray-700">• Sofía (Buenos Aires) - Fin de daimoku: ${getRandomEndTime()}</div>
+                    <div class="text-gray-700">• Elena (Córdoba) - Fin de daimoku: ${getRandomEndTime()}</div>
+                `;
+            } else {
+                statusDot.className = 'offline-dot';
+                statusText.textContent = 'Fuera de línea (Modo Local)';
+                onlineUsersList.innerHTML = 'Conéctate a internet para ver a otras damas en tu zona...';
+            }
+        }
+
+        window.addEventListener('online', () => updateNetworkStatus(isRunning, myEndTimeText.textContent));
+        window.addEventListener('offline', () => updateNetworkStatus());
+        
+        
+        // --- 6. REGISTRO DE SERVICE WORKER Y CONTROLADOR PWA ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker de Daimokudamas registrado:', reg.scope))
+                    .catch(err => console.error('Error al registrar el Service Worker:', err));
+            });
+        }
+
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwaInstallBanner');
+        const installBtn = document.getElementById('pwaInstallBtn');
+        const closeBtn = document.getElementById('pwaCloseBtn');
+        const installText = document.getElementById('pwaInstallText');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.classList.remove('translate-y-full');
+        });
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+        if (isIOS && !isStandalone) {
+            installText.innerHTML = "Toca el botón <strong>Compartir 📤</strong> abajo en Safari y selecciona <strong>'Agregar a inicio' ➕</strong>.";
+            installBtn.innerHTML = "📤 CÓMO INSTALAR";
+            
+            setTimeout(() => {
+                installBanner.classList.remove('translate-y-full');
+            }, 2000);
+        }
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                installBanner.classList.add('translate-y-full');
+            } else if (isIOS) {
+                alert("Para instalar en tu iPhone/iPad:
+
+1. Pulsa el botón de compartir 📤 en la parte inferior de Safari.
+2. Desliza hacia abajo y selecciona 'Agregar a inicio' ➕.
+3. ¡Listo! Se abrirá como una aplicación nativa.");
+            }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            installBanner.classList.add('translate-y-full');
+        });
+
+        updateNetworkStatus();
+        updateCreditsDisplay();
+    </script>
+</body>
+</html>

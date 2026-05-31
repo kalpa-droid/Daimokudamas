@@ -730,7 +730,7 @@
         const quotesData = [
             { text: "Las mujeres son las verdaderas protagonistas en la construcción de una mejor sociedad; su sabiduría y sus acciones son la fuerza motriz para crear una era de paz y de humanismo democrático.", source: "Adaptado del capítulo «Avanzar», vol. 18 de La nueva revolución humana", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/march-8.html" },
             { text: "Cuando sacamos fuerzas de nuestro interior, nuestra perspectiva cambia por completo; todo a nuestro alrededor se ve diferente. Ser fuerte es la clave para ser felices.", source: "Discurso en una reunión conjunta de la División Femenina y Juvenil Femenina, 2006", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/august-7.html" },
-            { text: "Así como la brisa primaveral despierta tiernos brotes en el follaje, el aliento sincero puede derretir un corazón helado e inspirar a las personas. Nada revitaliza más que las palabras de aliento.", source: "Daisaku Ikeda — Sitio oficial", url: "https://www.daisakuikeda.org/es/sub/quotations/index.html" },
+            { text: "Así como la brisa primaveral despierta tieronos brotes en el follaje, el aliento sincero puede derretir un corazón helado e inspirar a las personas. Nada revitaliza más que las palabras de aliento.", source: "Daisaku Ikeda — Sitio oficial", url: "https://www.daisakuikeda.org/es/sub/quotations/index.html" },
             { text: "Las mujeres son pacificadoras naturales. A través de su enfoque en las relaciones humanas y la crianza, desarrollan una empatía que llega a lo más hondo de la realidad humana.", source: "Daisaku Ikeda — Escritos sobre paz y humanismo", url: "https://www.daisakuikeda.org/es/main/peacebuild/peace/peace-01.html" },
             { text: "La felicidad genuina yace en activar la fuente interior de felicidad eterna, absoluta e indestructible que es Nam-myoho-renge-kyo, una ley que resplandece en lo profundo de su ser.", source: "Mensaje a la División Juvenil Femenina, 2001", url: "https://www.sokaglobal.org/es/resources/study-materials/buddhist-study/the-wisdom-for-creating-happiness-and-peace/chapter-20-8.html" },
             { text: "La vida es una lucha. Los que se desafían y triunfan son felices. Por eso, espero que cada una de ustedes tenga la firme determinación de triunfar en cada contienda.", source: "Discurso en la 36ª Reunión de la sede central con la División Femenina, 2010", url: "https://www.daisakuikeda.org/es/sub/events/archives/2010/jan/news20100109-monthly-mtg.html" },
@@ -870,52 +870,67 @@
 
         function initMQTT() {
             if (mqttClient) return;
-
-            // Conexión segura por WebSocket al Broker público y gratuito de HiveMQ
-            mqttClient = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
-
-            mqttClient.on('connect', () => {
-                statusDot.className = 'online-dot';
-                statusText.textContent = 'En línea (Sincronizada con el mundo)';
-                mqttClient.subscribe(mqttTopic);
-                publishPresence();
-            });
-
-            mqttClient.on('message', (topic, message) => {
-                if (topic === mqttTopic) {
-                    try {
-                        const data = JSON.parse(message.toString());
-                        // Si recibimos la presencia de otro dispositivo
-                        if (data.id && data.id !== myUserId) {
-                            activeUsers[data.id] = {
-                                name: data.name,
-                                endTime: data.endTime,
-                                lastSeen: Date.now()
-                            };
-                            updateOnlineUsersUI();
-                        }
-                    } catch (e) {
-                        console.error('Error al procesar mensaje de red:', e);
-                    }
-                }
-            });
-
-            mqttClient.on('close', () => {
+            if (typeof mqtt === 'undefined') {
                 statusDot.className = 'offline-dot';
                 statusText.textContent = 'Modo Local (Fuera de línea)';
-                updateOnlineUsersUI();
-            });
+                return;
+            }
+
+            try {
+                // Conexión segura por WebSocket al Broker público y gratuito de HiveMQ
+                mqttClient = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
+
+                mqttClient.on('connect', () => {
+                    statusDot.className = 'online-dot';
+                    statusText.textContent = 'En línea (Sincronizada con el mundo)';
+                    mqttClient.subscribe(mqttTopic);
+                    publishPresence();
+                });
+
+                mqttClient.on('message', (topic, message) => {
+                    if (topic === mqttTopic) {
+                        try {
+                            const data = JSON.parse(message.toString());
+                            // Si recibimos la presencia de otro dispositivo
+                            if (data.id && data.id !== myUserId) {
+                                activeUsers[data.id] = {
+                                    name: data.name,
+                                    endTime: data.endTime,
+                                    lastSeen: Date.now()
+                                };
+                                updateOnlineUsersUI();
+                            }
+                        } catch (e) {
+                            console.error('Error al procesar mensaje de red:', e);
+                        }
+                    }
+                });
+
+                mqttClient.on('close', () => {
+                    statusDot.className = 'offline-dot';
+                    statusText.textContent = 'Modo Local (Fuera de línea)';
+                    updateOnlineUsersUI();
+                });
+            } catch (error) {
+                console.warn('Fallo al conectar MQTT:', error);
+                statusDot.className = 'offline-dot';
+                statusText.textContent = 'Modo Local (Fuera de línea)';
+            }
         }
 
         function publishPresence() {
-            if (mqttClient && mqttClient.connected) {
-                const presenceData = {
-                    id: myUserId,
-                    name: userNameInput.value || 'Hermana anónima',
-                    endTime: isRunning && myEndTimeText.textContent ? myEndTimeText.textContent : '--:--',
-                    lastSeen: Date.now()
-                };
-                mqttClient.publish(mqttTopic, JSON.stringify(presenceData));
+            if (typeof mqtt !== 'undefined' && mqttClient && mqttClient.connected) {
+                try {
+                    const presenceData = {
+                        id: myUserId,
+                        name: userNameInput.value || 'Hermana anónima',
+                        endTime: isRunning && myEndTimeText.textContent ? myEndTimeText.textContent : '--:--',
+                        lastSeen: Date.now()
+                    };
+                    mqttClient.publish(mqttTopic, JSON.stringify(presenceData));
+                } catch (e) {
+                    console.error('Error al publicar presencia:', e);
+                }
             }
         }
 
@@ -969,8 +984,10 @@
                 initMQTT();
                 publishPresence();
             } else {
-                if (mqttClient) {
-                    mqttClient.end();
+                if (typeof mqtt !== 'undefined' && mqttClient) {
+                    try {
+                        mqttClient.end();
+                    } catch(e) {}
                     mqttClient = null;
                 }
                 statusDot.className = 'offline-dot';
@@ -1030,7 +1047,7 @@
             installBanner.classList.add('translate-y-full');
         });
 
-        // Inicializar vistas
+        // Inicializar vistas de forma segura
         updateNetworkStatus();
         updateCreditsDisplay();
     </script>

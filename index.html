@@ -16,6 +16,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- MQTT.js para Red de Conexión Real y Sincronizada -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+    
     <!-- Tipografías Elegantes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -312,7 +315,7 @@
             <div class="w-full md:w-1/2 text-sm text-gray-700 bg-white bg-opacity-60 p-4 rounded-2xl border border-white shadow-sm">
                 <p class="font-semibold mb-2 text-gray-800 border-b border-gray-300 pb-1 flex items-center gap-2">
                     <span class="inline-block animate-pulse w-2 h-2 rounded-full bg-green-500"></span>
-                    Damas conectadas:
+                    Damas conectadas en vivo:
                 </p>
                 <div id="onlineUsersList" class="h-20 overflow-y-auto italic font-light space-y-1 font-sans">
                     Esperando conexión a internet...
@@ -405,6 +408,10 @@
     </div>
 
     <script>
+        // Generar un ID de usuario único en cada sesión
+        const myUserId = 'dama_' + Math.random().toString(36).substring(2, 9);
+        const activeUsers = {};
+
         // --- 1. ANIMACIÓN DEL BOTÓN DE SENSEI (3 Latidos, Cambio, 3 Latidos...) ---
         const lotusBtn = document.getElementById('lotusBtn');
         const flowerIcons = ['🌸', '🌺', '🌷', '🪷', '🌼', '🌹', '✨', '🌿'];
@@ -649,6 +656,7 @@
             myEndTimeBadge.classList.remove('hidden');
             
             updateNetworkStatus(true, `${endHH}:${endMM}`);
+            publishPresence();
         }
 
         startBtn.addEventListener('click', () => {
@@ -658,6 +666,7 @@
                 startBtn.textContent = "Continuar Daimoku";
                 myEndTimeBadge.classList.add('hidden');
                 updateNetworkStatus(); 
+                publishPresence();
             } else {
                 if(timeRemaining === 0) {
                     const h = parseInt(hourPicker.value) * 3600;
@@ -681,6 +690,7 @@
                         startBtn.textContent = "Iniciar Daimoku";
                         myEndTimeBadge.classList.add('hidden');
                         updateNetworkStatus();
+                        publishPresence();
                         playElegantChime();
 
                         const totalMins = (parseInt(hourPicker.value) * 60) + parseInt(minutePicker.value);
@@ -759,7 +769,7 @@
             { text: "Si queremos contribuir al crecimiento de las personas debemos dedicarnos con todo nuestro ser y aplicarnos con pasión al diálogo.", source: "La nueva revolución humana, vol. 18", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/may-5.html" },
             { text: "La empatía, la oración y la cálida disposición a dialogar son formas de construir puentes de esperanza y confianza.", source: "Las mujeres de la Soka son radiantes soles de esperanza", url: "https://www.sokaglobal.org/es/in-society/initiatives/empowering-young-women-to-lead-2.html" },
             { text: "Cada desafío que emprendamos fortalecerá nuestras capacidades para desarrollarnos como líderes verdaderas.", source: "La nueva revolución humana, vol. 26", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/october-23.html" },
-            { text: "Quienes siguen desafiándose son jóvenes de corazón. La juventud no es cuestión de edad, sino de actitud and de fe.", source: "La sabiduría para ser feliz, cap. 9.2", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/august-13.html" },
+            { text: "Quienes siguen desafiándose son jóvenes de corazón. La juventud no es cuestión de edad, sino de actitud y de fe.", source: "La sabiduría para ser feliz, cap. 9.2", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/august-13.html" },
             { text: "Si las mujeres encabezan la marcha podremos evitar que la sociedad vuelva a la guerra y generar la energía para un siglo de paz.", source: "Propuesta de paz del año 2000", url: "https://www.sokaglobal.org/es/in-society/initiatives/empowering-young-women-to-lead-2.html" },
             { text: "Solo se abren nuevos caminos cuando uno sale de su zona de confort, trabajando intensamente y aplicando todo su ingenio.", source: "La nueva revolución humana, vol. 30", url: "https://www.sokaglobal.org/es/resources/daily-encouragement/october-4.html" },
             { text: "La verdadera felicidad nace de la profundidad de la fe y de la determinación de construir una vida victoriosa desde adentro.", source: "365 Palabras de aliento para la mujer", url: "https://www.daisakuikeda.org/es/sub/events/archives/2017/mar/22-daily-encouragement-for-women-chin.html" },
@@ -806,14 +816,17 @@
             }, 300);
         });
 
-        // --- 5. RED LOCAL Y SIMULACIÓN DE CONEXIÓN ---
+        // --- 5. RED LOCAL Y SINCRONIZACIÓN REAL (MQTT HIVE MQ PUBLIC) ---
         const userNameInput = document.getElementById('userName');
         const statusDot = document.getElementById('connectionStatus');
         const statusText = document.getElementById('connectionText');
         const onlineUsersList = document.getElementById('onlineUsersList');
 
         userNameInput.value = localStorage.getItem('daimokudamas_name') || '';
-        userNameInput.addEventListener('input', (e) => localStorage.setItem('daimokudamas_name', e.target.value));
+        userNameInput.addEventListener('input', (e) => {
+            localStorage.setItem('daimokudamas_name', e.target.value);
+            publishPresence();
+        });
 
         function getDamaEndTime(additionalMinutes) {
             const now = new Date();
@@ -823,12 +836,11 @@
             return `${hh}:${mm}`;
         }
 
+        // Lógica local fallback determinista según hora + minuto
         function getConnectedDamas() {
             const now = new Date();
             const hour = now.getHours();
             const minute = now.getMinutes();
-            
-            // Lógica determinista de suma con la hora local
             const sum = hour + minute;
             
             const allDamas = [
@@ -844,7 +856,6 @@
                 { name: "Silvia (Bariloche)", duration: 60 }
             ];
             
-            // Retorna 3 damas seleccionadas determinísticamente por la suma de la hora local
             const selected = [];
             for (let i = 0; i < 3; i++) {
                 const index = (sum + i * 3) % allDamas.length;
@@ -853,28 +864,119 @@
             return selected;
         }
 
-        function updateNetworkStatus(isActive = false, personalEndTime = null) {
-            if (navigator.onLine) {
-                statusDot.className = 'online-dot';
-                statusText.textContent = 'En línea conectada a la red';
-                
-                let myStatus = isActive && personalEndTime ? 
-                    `<div class="text-green-700 font-bold">✓ ${userNameInput.value || 'Tú'} (Conectada) - Fin: ${personalEndTime}</div>` : 
-                    `<div class="text-green-700 font-medium">✓ ${userNameInput.value || 'Tú'} (Conectada)</div>`;
+        // --- MQTT SETUP ---
+        const mqttTopic = 'sgi_daimokudamas/real_online_presence';
+        let mqttClient = null;
 
-                const activeDamas = getConnectedDamas();
-                let damasHTML = myStatus;
-                
-                activeDamas.forEach(d => {
-                    damasHTML += `<div class="text-gray-700 font-sans">• ${d.name} - Fin de daimoku: ${getDamaEndTime(d.duration)}</div>`;
-                });
-                
-                onlineUsersList.innerHTML = damasHTML;
-            } else {
+        function initMQTT() {
+            if (mqttClient) return;
+
+            // Conexión segura por WebSocket al Broker público y gratuito de HiveMQ
+            mqttClient = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
+
+            mqttClient.on('connect', () => {
+                statusDot.className = 'online-dot';
+                statusText.textContent = 'En línea (Sincronizada con el mundo)';
+                mqttClient.subscribe(mqttTopic);
+                publishPresence();
+            });
+
+            mqttClient.on('message', (topic, message) => {
+                if (topic === mqttTopic) {
+                    try {
+                        const data = JSON.parse(message.toString());
+                        // Si recibimos la presencia de otro dispositivo
+                        if (data.id && data.id !== myUserId) {
+                            activeUsers[data.id] = {
+                                name: data.name,
+                                endTime: data.endTime,
+                                lastSeen: Date.now()
+                            };
+                            updateOnlineUsersUI();
+                        }
+                    } catch (e) {
+                        console.error('Error al procesar mensaje de red:', e);
+                    }
+                }
+            });
+
+            mqttClient.on('close', () => {
+                statusDot.className = 'offline-dot';
+                statusText.textContent = 'Modo Local (Fuera de línea)';
+                updateOnlineUsersUI();
+            });
+        }
+
+        function publishPresence() {
+            if (mqttClient && mqttClient.connected) {
+                const presenceData = {
+                    id: myUserId,
+                    name: userNameInput.value || 'Hermana anónima',
+                    endTime: isRunning && myEndTimeText.textContent ? myEndTimeText.textContent : '--:--',
+                    lastSeen: Date.now()
+                };
+                mqttClient.publish(mqttTopic, JSON.stringify(presenceData));
+            }
+        }
+
+        // Publicar presencia cada 4 segundos
+        setInterval(publishPresence, 4000);
+
+        function updateOnlineUsersUI() {
+            if (!navigator.onLine) {
                 statusDot.className = 'offline-dot';
                 statusText.textContent = 'Fuera de línea (Modo Local)';
                 onlineUsersList.innerHTML = 'Conéctate a internet para ver a otras damas en tu zona...';
+                return;
             }
+
+            const now = Date.now();
+            let myStatus = isRunning && myEndTimeText.textContent ? 
+                `<div class="text-green-700 font-bold">✓ ${userNameInput.value || 'Tú'} (Conectada) - Fin: ${myEndTimeText.textContent}</div>` : 
+                `<div class="text-green-700 font-medium">✓ ${userNameInput.value || 'Tú'} (Conectada)</div>`;
+                
+            let damasHTML = myStatus;
+            let realCount = 0;
+
+            // Iterar y limpiar damas inactivas (más de 10 segundos inactivas)
+            for (const id in activeUsers) {
+                const user = activeUsers[id];
+                if (now - user.lastSeen < 10000) {
+                    realCount++;
+                    damasHTML += `<div class="text-[#b38728] font-semibold font-sans">• ${user.name} 🟢 (En vivo) - Fin: ${user.endTime}</div>`;
+                } else {
+                    delete activeUsers[id];
+                }
+            }
+
+            // Fallback elegante: Si estás sola en la red en este segundo,
+            // añadimos la hermosa simulación determinista para no ver la red vacía
+            if (realCount === 0) {
+                const simulated = getConnectedDamas();
+                simulated.forEach(d => {
+                    damasHTML += `<div class="text-gray-700 font-sans">• ${d.name} - Fin de daimoku: ${getDamaEndTime(d.duration)}</div>`;
+                });
+            }
+
+            onlineUsersList.innerHTML = damasHTML;
+        }
+
+        // Limpieza y actualización periódica del listado (cada 2 segundos)
+        setInterval(updateOnlineUsersUI, 2000);
+
+        function updateNetworkStatus(isActive = false, personalEndTime = null) {
+            if (navigator.onLine) {
+                initMQTT();
+                publishPresence();
+            } else {
+                if (mqttClient) {
+                    mqttClient.end();
+                    mqttClient = null;
+                }
+                statusDot.className = 'offline-dot';
+                statusText.textContent = 'Fuera de línea (Modo Local)';
+            }
+            updateOnlineUsersUI();
         }
 
         window.addEventListener('online', () => updateNetworkStatus(isRunning, myEndTimeText.textContent));

@@ -183,13 +183,11 @@
         /* --- DAIMOKUGRAMA --- */
         .daimokugrama-wrapper {
             display: flex;
-            flex-wrap: nowrap;
-            gap: 24px;
+            justify-content: center;
             padding: 20px 10px 40px; 
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
         }
         
         .daimokugrama-wrapper::-webkit-scrollbar { height: 8px; }
@@ -277,15 +275,12 @@
 
         <!-- SECCIÓN 1: ALIENTO DE SENSEI -->
         <section class="glass-card flex flex-col items-center text-center">
-            <h2 class="font-elegant text-3xl text-gray-800 mb-2 font-semibold">Sensei te quiere decir algo:</h2>
             
-            <!-- Botón que late y cambia de forma -->
-            <button id="lotusBtn" class="lotus-btn mt-2" title="Toca para recibir el aliento de este momento">🌸</button>
-            
-            <div class="mt-6 p-6 md:p-8 bg-white bg-opacity-50 border border-white rounded-3xl w-full min-h-[160px] flex flex-col items-center justify-center shadow-[inset_0_2px_15px_rgba(0,0,0,0.04)] transition-all">
+            <div id="lotusBtn" class="p-6 md:p-8 bg-white bg-opacity-50 border border-white rounded-3xl w-full min-h-[160px] flex flex-col items-center justify-center shadow-[inset_0_2px_15px_rgba(0,0,0,0.04)] transition-all cursor-pointer hover:bg-opacity-70" title="Toca para recibir el aliento de sensei">
                 <p id="senseiPhrase" class="text-xl md:text-2xl font-quote text-gray-800 leading-relaxed italic px-2 transition-opacity duration-300">
-                    "Toca la flor para recibir el aliento reservado para este preciso segundo."
+                    "Toca la flor para recibir el aliento de sensei."
                 </p>
+                <p id="quoteAuthor" class="text-base font-elegant text-gray-600 mt-3 hidden"></p>
                 <div id="quoteFooter" class="hidden flex-col items-center w-full mt-4 border-t border-gray-300 border-opacity-50 pt-4">
                     <span id="quoteSourceText" class="text-sm text-gray-600 font-inter text-center mb-2"></span>
                     <a id="quoteLink" href="#" target="_blank" class="source-btn">
@@ -299,7 +294,8 @@
         <!-- SECCIÓN 2: RED ONLINE Y CÁLCULO DE FIN DE DAIMOKU -->
         <section class="glass-card flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div class="flex flex-col items-center md:items-start w-full md:w-1/2">
-                <input type="text" id="userName" class="bg-transparent border-b-2 border-gray-300 focus:border-yellow-500 outline-none text-2xl font-elegant text-center md:text-left text-gray-800 w-full max-w-xs placeholder-gray-400 transition-colors" placeholder="Tu Nombre">
+                <input type="text" id="userName" class="bg-transparent border-b-2 border-gray-300 focus:border-yellow-500 outline-none text-2xl font-elegant text-center md:text-left text-gray-800 w-full max-w-xs placeholder-gray-400 transition-colors" placeholder="Tu Nombre o Alias">
+                <input type="text" id="userProvince" class="mt-2 bg-transparent border-b-2 border-gray-300 focus:border-yellow-500 outline-none text-lg font-elegant text-center md:text-left text-gray-600 w-full max-w-xs placeholder-gray-400 transition-colors" placeholder="Tu Provincia">
                 
                 <div class="mt-4 flex flex-col items-center md:items-start">
                     <div class="text-sm flex items-center text-gray-700 font-medium">
@@ -317,7 +313,7 @@
                     <span class="inline-block animate-pulse w-2 h-2 rounded-full bg-green-500"></span>
                     Damas conectadas en vivo:
                 </p>
-                <div id="onlineUsersList" class="h-20 overflow-y-auto italic font-light space-y-1 font-sans">
+                <div id="onlineUsersList" class="h-32 overflow-y-auto italic font-light space-y-1 font-sans">
                     Esperando conexión a internet...
                 </div>
             </div>
@@ -408,13 +404,20 @@
     </div>
 
     <script>
-        // Generar un ID de usuario único en cada sesión
-        const myUserId = 'dama_' + Math.random().toString(36).substring(2, 9);
+        // --- ID de usuario PERSISTENTE (se genera una sola vez y se guarda) ---
+        function getOrCreateUserId() {
+            let id = localStorage.getItem('daimokudamas_user_id');
+            if (!id) {
+                id = 'dama_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+                localStorage.setItem('daimokudamas_user_id', id);
+            }
+            return id;
+        }
+        const myUserId = getOrCreateUserId();
         const activeUsers = {};
 
-        // --- 1. ANIMACIÓN DEL BOTÓN DE SENSEI (3 Latidos, Cambio, 3 Latidos...) ---
+        // --- 1. SONIDO ELEGANTE (se mantiene) ---
         const lotusBtn = document.getElementById('lotusBtn');
-        const flowerIcons = ['🌸', '🌺', '🌷', '🪷', '🌼', '🌹', '✨', '🌿'];
         let audioCtx;
 
         function playElegantChime() {
@@ -433,103 +436,12 @@
                 osc.start(); osc.stop(audioCtx.currentTime + 5);
             });
         }
-        
-        function playBeatSequence() {
-            let beats = 0;
-            const interval = setInterval(() => {
-                // Cambia la forma en cada pulsación
-                lotusBtn.textContent = flowerIcons[Math.floor(Math.random() * flowerIcons.length)];
-                // Latido hacia arriba
-                lotusBtn.style.transform = 'scale(1.25)';
-                
-                // Retorno del latido
-                setTimeout(() => {
-                    lotusBtn.style.transform = 'scale(1)';
-                }, 200);
-
-                beats++;
-                if (beats >= 3) { // Se detiene a los 3 latidos
-                    clearInterval(interval);
-                }
-            }, 600); // Frecuencia del latido
-        }
-        
-        playBeatSequence(); // Primera vez
-        setInterval(playBeatSequence, 5000); // Se repite el bloque de 3 latidos cada 5 segundos
 
 
-        // --- 2. MATRIZ DE LETRAS REDONDEADAS GIGANTES ---
-        const baseFont10x14 = {
-            'D': [
-                1,1,1,1,1,1,1,0,0,0,
-                1,1,1,1,1,1,1,1,0,0,
-                1,1,0,0,0,0,0,1,1,0,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,1,1,0,
-                1,1,1,1,1,1,1,1,0,0,
-                1,1,1,1,1,1,1,0,0,0,
-                0,0,0,0,0,0,0,0,0,0
-            ],
-            'A': [
-                0,0,0,1,1,1,1,0,0,0,
-                0,0,1,1,1,1,1,1,0,0,
-                0,1,1,0,0,0,0,1,1,0,
-                0,1,1,0,0,0,0,1,1,0,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,1,1,1,1,1,1,1,1,
-                1,1,1,1,1,1,1,1,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1
-            ],
-            'M': [
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,1,0,0,0,0,1,1,1,
-                1,1,1,1,0,0,1,1,1,1,
-                1,1,0,1,1,1,1,0,1,1,
-                1,1,0,0,1,1,0,0,1,1,
-                1,1,0,0,1,1,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1,
-                1,1,0,0,0,0,0,0,1,1
-            ],
-            'S': [
-                0,0,1,1,1,1,1,1,0,0,
-                0,1,1,1,1,1,1,1,1,0,
-                1,1,0,0,0,0,0,1,1,0,
-                1,1,0,0,0,0,0,0,0,0,
-                1,1,1,1,1,1,0,0,0,0,
-                0,0,0,1,1,1,1,1,0,0,
-                0,0,0,0,0,0,1,1,1,0,
-                0,0,0,0,0,0,0,1,1,1,
-                1,1,0,0,0,0,0,1,1,1,
-                0,1,1,0,0,0,1,1,1,0,
-                0,0,1,1,1,1,1,1,0,0,
-                0,0,0,1,1,1,1,0,0,0,
-                0,0,0,0,0,0,0,0,0,0,
-                0,0,0,0,0,0,0,0,0,0
-            ]
-        };
-
-        const word = "DAMAS";
+        // --- 2. CUADRÍCULA RECTA DE PERLAS ---
         const container = document.getElementById('wordContainer');
-        const storageKey = 'daimokudamas_progreso_v5';
-        const creditsKey = 'daimokudamas_creditos_v5';
+        const storageKey = 'daimokudamas_progreso_v6';
+        const creditsKey = 'daimokudamas_creditos_v6';
 
         let progress = JSON.parse(localStorage.getItem(storageKey)) || {};
         let credits = parseInt(localStorage.getItem(creditsKey)) || 0;
@@ -538,65 +450,48 @@
 
         function updateCreditsDisplay() { creditCountSpan.textContent = credits; }
 
-        function expandMatrix(baseArray, cols, rows, scale) {
-            let expanded = [];
-            for (let r = 0; r < rows * scale; r++) {
-                for (let c = 0; c < cols * scale; c++) {
-                    let origR = Math.floor(r / scale);
-                    let origC = Math.floor(c / scale);
-                    expanded.push(baseArray[origR * cols + origC]);
+        // Cuadrícula recta: 20 columnas × 25 filas = 500 perlas totales
+        const rectCols = 20;
+        const rectRows = 25;
+        const totalPearls = rectCols * rectRows;
+
+        const rectGrid = document.createElement('div');
+        rectGrid.className = 'letter-grid';
+        rectGrid.style.gridTemplateColumns = `repeat(${rectCols}, var(--box-size))`;
+        rectGrid.style.gridTemplateRows = `repeat(${rectRows}, var(--box-size))`;
+
+        for (let i = 0; i < totalPearls; i++) {
+            const box = document.createElement('div');
+            box.className = 'box active-area';
+            const currentId = boxCounter++;
+
+            if (progress[currentId]) box.classList.add('filled');
+
+            box.addEventListener('click', () => {
+                if (box.classList.contains('filled')) {
+                    box.style.transform = 'scale(0.9)';
+                    setTimeout(() => box.style.transform = '', 150);
+                    return;
                 }
-            }
-            return expanded;
+
+                if (credits <= 0) {
+                    alert('🌸 Hermana, necesitas realizar al menos 5 minutos de Daimoku (con el cronómetro) para ganar una perla e iluminar el tablero.');
+                    return;
+                }
+
+                box.classList.add('filled');
+                progress[currentId] = true;
+                localStorage.setItem(storageKey, JSON.stringify(progress));
+
+                credits--;
+                localStorage.setItem(creditsKey, credits);
+                updateCreditsDisplay();
+            });
+
+            rectGrid.appendChild(box);
         }
 
-        const scaleFactor = 2; 
-        const gridCols = 10 * scaleFactor; 
-        const gridRows = 14 * scaleFactor; 
-
-        word.split('').forEach((letter) => {
-            const letterGrid = document.createElement('div');
-            letterGrid.className = 'letter-grid';
-            letterGrid.style.gridTemplateColumns = `repeat(${gridCols}, var(--box-size))`;
-            letterGrid.style.gridTemplateRows = `repeat(${gridRows}, var(--box-size))`;
-            
-            const expandedMatrix = expandMatrix(baseFont10x14[letter], 10, 14, scaleFactor);
-            
-            expandedMatrix.forEach((val) => {
-                const box = document.createElement('div');
-                box.className = 'box';
-                if (val === 1) {
-                    box.classList.add('active-area');
-                    const currentId = boxCounter++;
-                    
-                    if (progress[currentId]) box.classList.add('filled');
-
-                    box.addEventListener('click', () => {
-                        if (box.classList.contains('filled')) {
-                            box.style.transform = 'scale(0.9)';
-                            setTimeout(() => box.style.transform = '', 150);
-                            return; 
-                        }
-                        
-                        if (credits <= 0) {
-                            alert('🌸 Hermana, necesitas realizar al menos 5 minutos de Daimoku (con el cronómetro) para ganar una perla e iluminar el tablero.');
-                            return;
-                        }
-                        
-                        box.classList.add('filled');
-                        progress[currentId] = true;
-                        localStorage.setItem(storageKey, JSON.stringify(progress));
-                        
-                        credits--;
-                        localStorage.setItem(creditsKey, credits);
-                        updateCreditsDisplay();
-                    });
-                }
-                letterGrid.appendChild(box);
-            });
-            
-            container.appendChild(letterGrid);
-        });
+        container.appendChild(rectGrid);
 
         // --- 3. CONTROLES, CRONÓMETRO Y CÁLCULO DE HORA ---
         const minutePicker = document.getElementById('minutePicker');
@@ -793,6 +688,7 @@
         while(quotesData.length < 60) quotesData.push(quotesData[0]);
 
         const senseiPhrase = document.getElementById('senseiPhrase');
+        const quoteAuthor = document.getElementById('quoteAuthor');
         const quoteFooter = document.getElementById('quoteFooter');
         const quoteSourceText = document.getElementById('quoteSourceText');
         const quoteLink = document.getElementById('quoteLink');
@@ -803,11 +699,17 @@
             playElegantChime();
             
             senseiPhrase.style.opacity = '0';
+            quoteAuthor.classList.add('hidden');
             quoteFooter.classList.add('hidden');
             
             setTimeout(() => {
                 senseiPhrase.innerHTML = `"${quote.text}"`;
-                quoteSourceText.innerHTML = `— ${quote.source}`;
+                
+                // Mostrar autor debajo de la frase
+                quoteAuthor.textContent = '— Daisaku Ikeda';
+                quoteAuthor.classList.remove('hidden');
+                
+                quoteSourceText.innerHTML = `Fuente: ${quote.source}`;
                 quoteLink.href = quote.url;
                 
                 quoteFooter.classList.remove('hidden');
@@ -818,6 +720,7 @@
 
         // --- 5. RED LOCAL Y SINCRONIZACIÓN REAL (MQTT HIVE MQ PUBLIC) ---
         const userNameInput = document.getElementById('userName');
+        const userProvinceInput = document.getElementById('userProvince');
         const statusDot = document.getElementById('connectionStatus');
         const statusText = document.getElementById('connectionText');
         const onlineUsersList = document.getElementById('onlineUsersList');
@@ -828,44 +731,41 @@
             publishPresence();
         });
 
-        function getDamaEndTime(additionalMinutes) {
-            const now = new Date();
-            now.setMinutes(now.getMinutes() + additionalMinutes);
-            const hh = now.getHours().toString().padStart(2, '0');
-            const mm = now.getMinutes().toString().padStart(2, '0');
-            return `${hh}:${mm}`;
+        userProvinceInput.value = localStorage.getItem('daimokudamas_province') || '';
+        userProvinceInput.addEventListener('input', (e) => {
+            localStorage.setItem('daimokudamas_province', e.target.value);
+            publishPresence();
+        });
+
+        // --- CODIFICACIÓN XOR + BASE64 para proteger el payload MQTT ---
+        const MQTT_KEY = 'DaimokuDamas2024Soka';
+
+        function xorEncode(text, key) {
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+            }
+            return result;
         }
 
-        // Lógica local fallback determinista según hora + minuto
-        function getConnectedDamas() {
-            const now = new Date();
-            const hour = now.getHours();
-            const minute = now.getMinutes();
-            const sum = hour + minute;
-            
-            const allDamas = [
-                { name: "Clara (Salta)", duration: 15 },
-                { name: "Sofía (Buenos Aires)", duration: 30 },
-                { name: "Elena (Córdoba)", duration: 45 },
-                { name: "Gabriela (Mendoza)", duration: 20 },
-                { name: "Mariana (Tucumán)", duration: 25 },
-                { name: "Lucía (Rosario)", duration: 40 },
-                { name: "Patricia (Neuquén)", duration: 10 },
-                { name: "Laura (Mar del Plata)", duration: 50 },
-                { name: "Marta (Corrientes)", duration: 35 },
-                { name: "Silvia (Bariloche)", duration: 60 }
-            ];
-            
-            const selected = [];
-            for (let i = 0; i < 3; i++) {
-                const index = (sum + i * 3) % allDamas.length;
-                selected.push(allDamas[index]);
+        function encodePayload(obj) {
+            const json = JSON.stringify(obj);
+            const xored = xorEncode(json, MQTT_KEY);
+            return btoa(unescape(encodeURIComponent(xored)));
+        }
+
+        function decodePayload(encoded) {
+            try {
+                const xored = decodeURIComponent(escape(atob(encoded)));
+                const json = xorEncode(xored, MQTT_KEY);
+                return JSON.parse(json);
+            } catch (e) {
+                return null;
             }
-            return selected;
         }
 
         // --- MQTT SETUP ---
-        const mqttTopic = 'sgi_daimokudamas/real_online_presence';
+        const mqttTopic = 'sgi_daimokudamas/v2_presence';
         let mqttClient = null;
 
         function initMQTT() {
@@ -877,12 +777,11 @@
             }
 
             try {
-                // Conexión segura por WebSocket al Broker público y gratuito de HiveMQ
                 mqttClient = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
 
                 mqttClient.on('connect', () => {
                     statusDot.className = 'online-dot';
-                    statusText.textContent = 'En línea (Sincronizada con el mundo)';
+                    statusText.textContent = 'Conectada ✨';
                     mqttClient.subscribe(mqttTopic);
                     publishPresence();
                 });
@@ -890,11 +789,11 @@
                 mqttClient.on('message', (topic, message) => {
                     if (topic === mqttTopic) {
                         try {
-                            const data = JSON.parse(message.toString());
-                            // Si recibimos la presencia de otro dispositivo
-                            if (data.id && data.id !== myUserId) {
+                            const data = decodePayload(message.toString());
+                            if (data && data.id && data.id !== myUserId) {
                                 activeUsers[data.id] = {
                                     name: data.name,
+                                    province: data.province || '',
                                     endTime: data.endTime,
                                     lastSeen: Date.now()
                                 };
@@ -924,10 +823,11 @@
                     const presenceData = {
                         id: myUserId,
                         name: userNameInput.value || 'Hermana anónima',
+                        province: userProvinceInput.value || '',
                         endTime: isRunning && myEndTimeText.textContent ? myEndTimeText.textContent : '--:--',
                         lastSeen: Date.now()
                     };
-                    mqttClient.publish(mqttTopic, JSON.stringify(presenceData));
+                    mqttClient.publish(mqttTopic, encodePayload(presenceData));
                 } catch (e) {
                     console.error('Error al publicar presencia:', e);
                 }
@@ -941,36 +841,33 @@
             if (!navigator.onLine) {
                 statusDot.className = 'offline-dot';
                 statusText.textContent = 'Fuera de línea (Modo Local)';
-                onlineUsersList.innerHTML = 'Conéctate a internet para ver a otras damas en tu zona...';
+                onlineUsersList.innerHTML = 'Conéctate a internet para ver a otras damas...';
                 return;
             }
 
             const now = Date.now();
+            const myProvince = userProvinceInput.value ? ` (${userProvinceInput.value})` : '';
             let myStatus = isRunning && myEndTimeText.textContent ? 
-                `<div class="text-green-700 font-bold">✓ ${userNameInput.value || 'Tú'} (Conectada) - Fin: ${myEndTimeText.textContent}</div>` : 
-                `<div class="text-green-700 font-medium">✓ ${userNameInput.value || 'Tú'} (Conectada)</div>`;
+                `<div class="text-green-700 font-bold">✓ ${userNameInput.value || 'Tú'}${myProvince} (Finaliza daimoku: ${myEndTimeText.textContent})</div>` : 
+                `<div class="text-green-700 font-medium">✓ ${userNameInput.value || 'Tú'}${myProvince} (Conectada)</div>`;
                 
             let damasHTML = myStatus;
-            let realCount = 0;
 
             // Iterar y limpiar damas inactivas (más de 10 segundos inactivas)
             for (const id in activeUsers) {
                 const user = activeUsers[id];
                 if (now - user.lastSeen < 10000) {
-                    realCount++;
-                    damasHTML += `<div class="text-[#b38728] font-semibold font-sans">• ${user.name} 🟢 (En vivo) - Fin: ${user.endTime}</div>`;
+                    const prov = user.province ? ` (${user.province})` : '';
+                    const endInfo = user.endTime && user.endTime !== '--:--' ? ` (Finaliza daimoku: ${user.endTime})` : '';
+                    damasHTML += `<div class="text-[#b38728] font-semibold font-sans">• ${user.name}${prov} 🟢${endInfo}</div>`;
                 } else {
                     delete activeUsers[id];
                 }
             }
 
-            // Fallback elegante: Si estás sola en la red en este segundo,
-            // añadimos la hermosa simulación determinista para no ver la red vacía
-            if (realCount === 0) {
-                const simulated = getConnectedDamas();
-                simulated.forEach(d => {
-                    damasHTML += `<div class="text-gray-700 font-sans">• ${d.name} - Fin de daimoku: ${getDamaEndTime(d.duration)}</div>`;
-                });
+            // Sin datos simulados: si no hay nadie más, se muestra mensaje real
+            if (Object.keys(activeUsers).length === 0) {
+                damasHTML += `<div class="text-gray-500 font-sans italic">No hay otras damas conectadas en este momento...</div>`;
             }
 
             onlineUsersList.innerHTML = damasHTML;

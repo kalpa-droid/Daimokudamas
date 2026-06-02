@@ -487,6 +487,33 @@
         let timerInterval;
         let timeRemaining = 0; 
         let isRunning = false;
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Screen Wake Lock activo 🌸');
+                }
+            } catch (err) {
+                console.warn('Wake Lock no soportado o denegado:', err);
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => {
+                    wakeLock = null;
+                    console.log('Screen Wake Lock liberado 🔒');
+                });
+            }
+        }
+
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && isRunning) {
+                await requestWakeLock();
+            }
+        });
         
         const timeDisplay = document.getElementById('timeDisplay');
         const startBtn = document.getElementById('startBtn');
@@ -529,6 +556,7 @@
                 isRunning = false;
                 startBtn.textContent = "Continuar Daimoku";
                 myEndTimeBadge.classList.add('hidden');
+                releaseWakeLock();
             } else {
                 if(timeRemaining === 0) {
                     const h = parseInt(hourPicker.value) * 3600;
@@ -541,6 +569,7 @@
                 startBtn.textContent = "Pausar";
                 
                 setEndTimeCalculation();
+                requestWakeLock();
                 
                 timerInterval = setInterval(() => {
                     timeRemaining--;
@@ -552,6 +581,7 @@
                         startBtn.textContent = "Iniciar Daimoku";
                         myEndTimeBadge.classList.add('hidden');
                         playElegantChime();
+                        releaseWakeLock();
 
                         const totalMins = (parseInt(hourPicker.value) * 60) + parseInt(minutePicker.value);
                         const boxesToPaint = Math.floor(totalMins / 5);

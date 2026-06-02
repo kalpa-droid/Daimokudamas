@@ -16,9 +16,6 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- MQTT.js para Red de Conexión Real y Sincronizada -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
-    
     <!-- Tipografías Elegantes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -276,45 +273,20 @@
         <!-- SECCIÓN 1: ALIENTO DE SENSEI -->
         <section class="glass-card flex flex-col items-center text-center">
             
-            <div id="lotusBtn" class="p-6 md:p-8 bg-white bg-opacity-50 border border-white rounded-3xl w-full min-h-[160px] flex flex-col items-center justify-center shadow-[inset_0_2px_15px_rgba(0,0,0,0.04)] transition-all cursor-pointer hover:bg-opacity-70" title="Toca para recibir el aliento de sensei">
+            <div id="lotusBtn" class="p-6 md:p-8 bg-white bg-opacity-50 border border-white rounded-3xl w-full min-h-[160px] flex flex-col items-center justify-center shadow-[inset_0_2px_15px_rgba(0,0,0,0.04)] transition-all cursor-pointer hover:bg-opacity-70" title="Toca para recibir Aliento de Sensei para este momento">
                 <p id="senseiPhrase" class="text-xl md:text-2xl font-quote text-gray-800 leading-relaxed italic px-2 transition-opacity duration-300">
-                    "Toca la flor para recibir el aliento de sensei."
+                    "Toca para recibir Aliento de Sensei para este momento"
                 </p>
                 <p id="quoteAuthor" class="text-base font-elegant text-gray-600 mt-3 hidden"></p>
-                <div id="quoteFooter" class="hidden flex-col items-center w-full mt-4 border-t border-gray-300 border-opacity-50 pt-4">
-                    <span id="quoteSourceText" class="text-sm text-gray-600 font-inter text-center mb-2"></span>
-                    <a id="quoteLink" href="#" target="_blank" class="source-btn">
-                        <svg viewBox="0 0 16 16"><path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm.5 12H7V7h1.5v5zM7.8 5.8c-.5 0-.8-.4-.8-.8s.3-.8.8-.8.8.4.8.8-.3.8-.8.8z"/></svg>
-                        Ir a la fuente oficial
-                    </a>
-                </div>
             </div>
         </section>
 
-        <!-- SECCIÓN 2: RED ONLINE Y CÁLCULO DE FIN DE DAIMOKU -->
-        <section class="glass-card flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div class="flex flex-col items-center md:items-start w-full md:w-1/2">
-                <input type="text" id="userName" class="bg-transparent border-b-2 border-gray-300 focus:border-yellow-500 outline-none text-2xl font-elegant text-center md:text-left text-gray-800 w-full max-w-xs placeholder-gray-400 transition-colors" placeholder="Tu Nombre o Alias">
-                <input type="text" id="userProvince" class="mt-2 bg-transparent border-b-2 border-gray-300 focus:border-yellow-500 outline-none text-lg font-elegant text-center md:text-left text-gray-600 w-full max-w-xs placeholder-gray-400 transition-colors" placeholder="Tu Provincia">
-                
-                <div class="mt-4 flex flex-col items-center md:items-start">
-                    <div class="text-sm flex items-center text-gray-700 font-medium">
-                        <span id="connectionStatus" class="offline-dot"></span>
-                        <span id="connectionText">Modo Local (Fuera de línea)</span>
-                    </div>
-                    <div id="myEndTimeBadge" class="end-time-badge hidden">
-                        Fin de daimoku: <span id="myEndTimeText">--:--</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="w-full md:w-1/2 text-sm text-gray-700 bg-white bg-opacity-60 p-4 rounded-2xl border border-white shadow-sm">
-                <p class="font-semibold mb-2 text-gray-800 border-b border-gray-300 pb-1 flex items-center gap-2">
-                    <span class="inline-block animate-pulse w-2 h-2 rounded-full bg-green-500"></span>
-                    Damas conectadas en vivo:
-                </p>
-                <div id="onlineUsersList" class="h-32 overflow-y-auto italic font-light space-y-1 font-sans">
-                    Esperando conexión a internet...
+        <!-- SECCIÓN 2: NOMBRE Y HORA DE FINALIZACIÓN DE DAIMOKU -->
+        <section class="glass-card flex flex-col items-center text-center gap-4">
+            <div class="flex flex-col items-center w-full">
+                <input type="text" id="userName" class="bg-transparent border-b-2 border-gray-300 focus:border-yellow-500 outline-none text-2xl font-elegant text-center text-gray-800 w-full max-w-xs placeholder-gray-400 transition-colors" placeholder="Tu Nombre o Alias">
+                <div id="myEndTimeBadge" class="end-time-badge hidden mt-4">
+                    Fin de daimoku: <span id="myEndTimeText">--:--</span>
                 </div>
             </div>
         </section>
@@ -549,9 +521,6 @@
             
             myEndTimeText.textContent = `${endHH}:${endMM}`;
             myEndTimeBadge.classList.remove('hidden');
-            
-            updateNetworkStatus(true, `${endHH}:${endMM}`);
-            publishPresence();
         }
 
         startBtn.addEventListener('click', () => {
@@ -560,8 +529,6 @@
                 isRunning = false;
                 startBtn.textContent = "Continuar Daimoku";
                 myEndTimeBadge.classList.add('hidden');
-                updateNetworkStatus(); 
-                publishPresence();
             } else {
                 if(timeRemaining === 0) {
                     const h = parseInt(hourPicker.value) * 3600;
@@ -584,8 +551,6 @@
                         isRunning = false;
                         startBtn.textContent = "Iniciar Daimoku";
                         myEndTimeBadge.classList.add('hidden');
-                        updateNetworkStatus();
-                        publishPresence();
                         playElegantChime();
 
                         const totalMins = (parseInt(hourPicker.value) * 60) + parseInt(minutePicker.value);
@@ -689,9 +654,6 @@
 
         const senseiPhrase = document.getElementById('senseiPhrase');
         const quoteAuthor = document.getElementById('quoteAuthor');
-        const quoteFooter = document.getElementById('quoteFooter');
-        const quoteSourceText = document.getElementById('quoteSourceText');
-        const quoteLink = document.getElementById('quoteLink');
 
         lotusBtn.addEventListener('click', () => {
             const currentSecond = new Date().getSeconds();
@@ -700,7 +662,6 @@
             
             senseiPhrase.style.opacity = '0';
             quoteAuthor.classList.add('hidden');
-            quoteFooter.classList.add('hidden');
             
             setTimeout(() => {
                 senseiPhrase.innerHTML = `"${quote.text}"`;
@@ -709,192 +670,17 @@
                 quoteAuthor.textContent = '— Daisaku Ikeda';
                 quoteAuthor.classList.remove('hidden');
                 
-                quoteSourceText.innerHTML = `Fuente: ${quote.source}`;
-                quoteLink.href = quote.url;
-                
-                quoteFooter.classList.remove('hidden');
-                quoteFooter.classList.add('flex');
                 senseiPhrase.style.opacity = '1';
             }, 300);
         });
 
-        // --- 5. RED LOCAL Y SINCRONIZACIÓN REAL (MQTT HIVE MQ PUBLIC) ---
+        // --- 5. MEMORIA LOCAL Y PERSISTENCIA DE NOMBRE ---
         const userNameInput = document.getElementById('userName');
-        const userProvinceInput = document.getElementById('userProvince');
-        const statusDot = document.getElementById('connectionStatus');
-        const statusText = document.getElementById('connectionText');
-        const onlineUsersList = document.getElementById('onlineUsersList');
 
         userNameInput.value = localStorage.getItem('daimokudamas_name') || '';
         userNameInput.addEventListener('input', (e) => {
             localStorage.setItem('daimokudamas_name', e.target.value);
-            publishPresence();
         });
-
-        userProvinceInput.value = localStorage.getItem('daimokudamas_province') || '';
-        userProvinceInput.addEventListener('input', (e) => {
-            localStorage.setItem('daimokudamas_province', e.target.value);
-            publishPresence();
-        });
-
-        // --- CODIFICACIÓN XOR + BASE64 para proteger el payload MQTT ---
-        const MQTT_KEY = 'DaimokuDamas2024Soka';
-
-        function xorEncode(text, key) {
-            let result = '';
-            for (let i = 0; i < text.length; i++) {
-                result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-            }
-            return result;
-        }
-
-        function encodePayload(obj) {
-            const json = JSON.stringify(obj);
-            const xored = xorEncode(json, MQTT_KEY);
-            return btoa(unescape(encodeURIComponent(xored)));
-        }
-
-        function decodePayload(encoded) {
-            try {
-                const xored = decodeURIComponent(escape(atob(encoded)));
-                const json = xorEncode(xored, MQTT_KEY);
-                return JSON.parse(json);
-            } catch (e) {
-                return null;
-            }
-        }
-
-        // --- MQTT SETUP ---
-        const mqttTopic = 'sgi_daimokudamas/v2_presence';
-        let mqttClient = null;
-
-        function initMQTT() {
-            if (mqttClient) return;
-            if (typeof mqtt === 'undefined') {
-                statusDot.className = 'offline-dot';
-                statusText.textContent = 'Modo Local (Fuera de línea)';
-                return;
-            }
-
-            try {
-                mqttClient = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
-
-                mqttClient.on('connect', () => {
-                    statusDot.className = 'online-dot';
-                    statusText.textContent = 'Conectada ✨';
-                    mqttClient.subscribe(mqttTopic);
-                    publishPresence();
-                });
-
-                mqttClient.on('message', (topic, message) => {
-                    if (topic === mqttTopic) {
-                        try {
-                            const data = decodePayload(message.toString());
-                            if (data && data.id && data.id !== myUserId) {
-                                activeUsers[data.id] = {
-                                    name: data.name,
-                                    province: data.province || '',
-                                    endTime: data.endTime,
-                                    lastSeen: Date.now()
-                                };
-                                updateOnlineUsersUI();
-                            }
-                        } catch (e) {
-                            console.error('Error al procesar mensaje de red:', e);
-                        }
-                    }
-                });
-
-                mqttClient.on('close', () => {
-                    statusDot.className = 'offline-dot';
-                    statusText.textContent = 'Modo Local (Fuera de línea)';
-                    updateOnlineUsersUI();
-                });
-            } catch (error) {
-                console.warn('Fallo al conectar MQTT:', error);
-                statusDot.className = 'offline-dot';
-                statusText.textContent = 'Modo Local (Fuera de línea)';
-            }
-        }
-
-        function publishPresence() {
-            if (typeof mqtt !== 'undefined' && mqttClient && mqttClient.connected) {
-                try {
-                    const presenceData = {
-                        id: myUserId,
-                        name: userNameInput.value || 'Hermana anónima',
-                        province: userProvinceInput.value || '',
-                        endTime: isRunning && myEndTimeText.textContent ? myEndTimeText.textContent : '--:--',
-                        lastSeen: Date.now()
-                    };
-                    mqttClient.publish(mqttTopic, encodePayload(presenceData));
-                } catch (e) {
-                    console.error('Error al publicar presencia:', e);
-                }
-            }
-        }
-
-        // Publicar presencia cada 4 segundos
-        setInterval(publishPresence, 4000);
-
-        function updateOnlineUsersUI() {
-            if (!navigator.onLine) {
-                statusDot.className = 'offline-dot';
-                statusText.textContent = 'Fuera de línea (Modo Local)';
-                onlineUsersList.innerHTML = 'Conéctate a internet para ver a otras damas...';
-                return;
-            }
-
-            const now = Date.now();
-            const myProvince = userProvinceInput.value ? ` (${userProvinceInput.value})` : '';
-            let myStatus = isRunning && myEndTimeText.textContent ? 
-                `<div class="text-green-700 font-bold">✓ ${userNameInput.value || 'Tú'}${myProvince} (Finaliza daimoku: ${myEndTimeText.textContent})</div>` : 
-                `<div class="text-green-700 font-medium">✓ ${userNameInput.value || 'Tú'}${myProvince} (Conectada)</div>`;
-                
-            let damasHTML = myStatus;
-
-            // Iterar y limpiar damas inactivas (más de 10 segundos inactivas)
-            for (const id in activeUsers) {
-                const user = activeUsers[id];
-                if (now - user.lastSeen < 10000) {
-                    const prov = user.province ? ` (${user.province})` : '';
-                    const endInfo = user.endTime && user.endTime !== '--:--' ? ` (Finaliza daimoku: ${user.endTime})` : '';
-                    damasHTML += `<div class="text-[#b38728] font-semibold font-sans">• ${user.name}${prov} 🟢${endInfo}</div>`;
-                } else {
-                    delete activeUsers[id];
-                }
-            }
-
-            // Sin datos simulados: si no hay nadie más, se muestra mensaje real
-            if (Object.keys(activeUsers).length === 0) {
-                damasHTML += `<div class="text-gray-500 font-sans italic">No hay otras damas conectadas en este momento...</div>`;
-            }
-
-            onlineUsersList.innerHTML = damasHTML;
-        }
-
-        // Limpieza y actualización periódica del listado (cada 2 segundos)
-        setInterval(updateOnlineUsersUI, 2000);
-
-        function updateNetworkStatus(isActive = false, personalEndTime = null) {
-            if (navigator.onLine) {
-                initMQTT();
-                publishPresence();
-            } else {
-                if (typeof mqtt !== 'undefined' && mqttClient) {
-                    try {
-                        mqttClient.end();
-                    } catch(e) {}
-                    mqttClient = null;
-                }
-                statusDot.className = 'offline-dot';
-                statusText.textContent = 'Fuera de línea (Modo Local)';
-            }
-            updateOnlineUsersUI();
-        }
-
-        window.addEventListener('online', () => updateNetworkStatus(isRunning, myEndTimeText.textContent));
-        window.addEventListener('offline', () => updateNetworkStatus());
         
         // --- 6. REGISTRO DE SERVICE WORKER Y CONTROLADOR PWA ---
         if ('serviceWorker' in navigator) {
@@ -945,7 +731,6 @@
         });
 
         // Inicializar vistas de forma segura
-        updateNetworkStatus();
         updateCreditsDisplay();
     </script>
 </body>
